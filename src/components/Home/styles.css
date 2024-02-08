@@ -1,0 +1,22 @@
+.button {
+    padding: 15px 80px;
+    background-color: #fff;
+    color: black;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    margin-top: 100px;
+    text-align: center;
+    justify-content: center;
+    margin-left: -40px;
+    max-width: 600px;
+    font-weight: bold;
+    transition: all 0.5s; /* Add transition to default state */
+  }
+  
+  .button:hover {
+    background-color: #333;
+    transform: scale(1.1);
+    transition: all 0.5s; /* Remove this line if not needed */
+  }
+  
