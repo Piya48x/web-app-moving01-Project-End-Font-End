@@ -16,6 +16,7 @@ import Login from "./screens/Loing-Register/Login.jsx";
 import RegisterDriver from "./screens/Loing-Register/RegisterDriver.jsx";
 import RegisterCustomer from "./screens/Loing-Register/RegisterCustomer.jsx";
 import UI_select from "./screens/Loing-Register/UI_select.jsx";
+import ForgotPassword from "./screens/Loing-Register/ForgotPassword.jsx";
 
 const router = createBrowserRouter([
   {
@@ -49,6 +50,10 @@ const router = createBrowserRouter([
   {
     path: "UI_select",
     element: <UI_select />
+  },
+  {
+    path: "ForgotPassword",
+    element: <ForgotPassword />
   },
 ]);
 

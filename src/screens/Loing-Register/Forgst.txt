@@ -1,0 +1,156 @@
+// ForgotPassword.jsx
+import  { useState } from 'react';
+import axios from 'axios'; // Make sure axios is installed: npm install axios
+
+const ForgotPassword = () => {
+  const [email, setEmail] = useState('');
+  const [message, setMessage] = useState('');
+
+  const handleResetPassword = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await axios.post('http://localhost:3000/api/forgot-password', { email });
+      setMessage(response.data.message);
+    } catch (error) {
+      setMessage(error.response.data.message);
+    }
+  };
+
+  return (
+    <div>
+      <h2>Forgot Password</h2>
+      <form onSubmit={handleResetPassword}>
+        <label htmlFor="email">Email:</label>
+        <input
+          type="email"
+          id="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
+        <button type="submit">Reset Password</button>
+      </form>
+      {message && <p>{message}</p>}
+    </div>
+  );
+};
+
+export default ForgotPassword;
+//-------------------------------------------
+import { useState } from "react";
+import axios from "axios";
+
+function ForgotPassword() {
+  const [email, setEmail] = useState("");
+  const [message, setMessage] = useState("");
+
+  const handleChange = (e) => {
+    setEmail(e.target.value);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      // Call the forgot password endpoint
+      const response = await axios.post(
+        "http://localhost:3000/api/forgot-password",
+        { email }
+      );
+      setMessage(response.data.message);
+    } catch (error) {
+      console.error("Error resetting password:", error);
+      setMessage("Failed to send password reset instructions.");
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full">
+        <div className="bg-white shadow-md rounded-md p-8">
+          <h2 className="text-3xl font-extrabold text-gray-900 text-center">
+            Forgot Your Password?
+          </h2>
+          <p className="mt-2 text-sm text-gray-600 text-center">
+            Please enter your email address to reset your password.
+          </p>
+          <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+            <div className="rounded-md shadow-sm -space-y-px">
+              <div>
+                <input
+                  type="email"
+                  placeholder="Enter your email"
+                  value={email}
+                  onChange={handleChange}
+                  className="appearance-none rounded-none relative block w-full px-3 py-2 bg-white border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                  required
+                />
+              </div>
+            </div>
+            <div>
+              <button
+                type="submit"
+                className="w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              >
+                Reset Password
+              </button>
+            </div>
+          </form>
+          {message && (
+            <div className="mt-4 text-center text-sm text-gray-600">
+              {message}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default ForgotPassword;
+
+//----------------------
+// Backend Endpoint to Handle Password Reset Request
+app.post("/api/forgot-password", async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    // Check if the user with the provided email exists
+    const user = await prisma.user.findUnique({
+      where: {
+        email,
+      },
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Generate a unique token for password reset
+    const token = generateUniqueToken(); // Implement this function to generate a unique token
+
+    // Save the token in the database or associate it with the user's email
+    await prisma.passwordResetToken.create({
+      data: {
+        token,
+        email,
+      },
+    });
+
+    // Send an email containing the password reset link with the token
+    await sendPasswordResetEmail(email, token); // Implement this function to send the email
+
+    return res
+      .status(200)
+      .json({ message: "Password reset instructions sent to your email" });
+  } catch (error) {
+    console.error("Error resetting password:", error);
+    return res
+      .status(500)
+      .json({ message: "Failed to send password reset instructions" });
+  }
+});
+
+app.get("/api/forgot-password", (req, res,next)=>{
+  res.json({message: "Hello Forgot-password"})
+})
+

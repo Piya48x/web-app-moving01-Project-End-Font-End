@@ -1,22 +1,34 @@
-/* eslint-disable no-unused-vars */
-import { useState } from "react";
+/* eslint-disable react-hooks/exhaustive-deps */
+import { useState, useEffect } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
-
+import { Link, useNavigate } from "react-router-dom";
 
 function Login() {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
+    rememberMe: false, // เพิ่ม state สำหรับการจำข้อมูลการเข้าสู่ระบบ
   });
 
-  const navigate = useNavigate(); // เปลี่ยน useHistory เป็น useNavigate
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // เมื่อ component โหลด จะตรวจสอบว่ามีข้อมูลการเข้าสู่ระบบที่จำไว้หรือไม่
+    const rememberMeData = JSON.parse(localStorage.getItem("rememberMeData"));
+    if (rememberMeData) {
+      setFormData({
+        ...formData,
+        ...rememberMeData,
+      });
+    }
+  }, []);
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type, checked } = e.target;
+    const newValue = type === "checkbox" ? checked : value; // ถ้าเป็น checkbox ให้ใช้ checked เป็นค่าใหม่
     setFormData({
       ...formData,
-      [name]: value,
+      [name]: newValue,
     });
   };
 
@@ -28,11 +40,18 @@ function Login() {
         formData
       );
       console.log(response.data);
-      alert("Login successful"); // แสดงแจ้งเตือนเมื่อเข้าสู่ระบบสำเร็จ
-      navigate("/CustomerMain"); // เปลี่ยนเส้นทางไปยังหน้าลูกค้าหลังจากเข้าสู่ระบบสำเร็จ
+      alert("Login successful");
+      if (formData.rememberMe) {
+        // ถ้าผู้ใช้ติก Remember me จะจำข้อมูลการเข้าสู่ระบบ
+        localStorage.setItem("rememberMeData", JSON.stringify(formData));
+      } else {
+        // ถ้าไม่ติก Remember me จะลบข้อมูลการเข้าสู่ระบบที่จำไว้
+        localStorage.removeItem("rememberMeData");
+      }
+      navigate("/CustomerMain");
     } catch (error) {
       console.error("Error logging in:", error);
-      alert("Error logging in. Please check your credentials."); // แสดงแจ้งเตือนเมื่อเกิดข้อผิดพลาดในการเข้าสู่ระบบ
+      alert("Error logging in. Please check your credentials.");
     }
   };
 
@@ -87,9 +106,11 @@ function Login() {
               <div className="flex items-center">
                 <input
                   id="remember-me"
-                  name="remember-me"
+                  name="rememberMe"
                   type="checkbox"
                   className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                  checked={formData.rememberMe} // ตรวจสอบ state ของ Remember me
+                  onChange={handleChange} // เมื่อเปลี่ยนค่าให้เรียกฟังก์ชัน handleChange
                 />
                 <label
                   htmlFor="remember-me"
@@ -100,12 +121,12 @@ function Login() {
               </div>
 
               <div className="text-sm">
-                <a
-                  href="#"
+                <Link
+                  to="/ForgotPassword"
                   className="font-medium text-indigo-600 hover:text-indigo-500"
                 >
                   Forgot your password?
-                </a>
+                </Link>
               </div>
             </div>
 
