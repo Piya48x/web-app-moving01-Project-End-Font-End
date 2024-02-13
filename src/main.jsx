@@ -11,12 +11,15 @@ import "./index.css";
 import Home from "./components/Home/Home.jsx";
 import Service from "./components/Service/Service.jsx";
 import About from "./components/About/About.jsx";
-import CustomerMain from "./screens/Customer/CustomerMain.jsx";
+import CustomerMain from "./screens/Customer/CustomerComponent.jsx";
 import Login from "./screens/Loing-Register/Login.jsx";
 import RegisterDriver from "./screens/Loing-Register/RegisterDriver.jsx";
 import RegisterCustomer from "./screens/Loing-Register/RegisterCustomer.jsx";
 import UI_select from "./screens/Loing-Register/UI_select.jsx";
 import ForgotPassword from "./screens/Loing-Register/ForgotPassword.jsx";
+import Play_select from "./screens/Loing-Register/Play_select.jsx";
+import CustomerComponent from "./screens/Customer/CustomerComponent.jsx";
+import DriverComponent from "./screens/Service/DriverComponent.jsx";
 
 const router = createBrowserRouter([
   {
@@ -54,6 +57,18 @@ const router = createBrowserRouter([
   {
     path: "ForgotPassword",
     element: <ForgotPassword />
+  },
+  {
+    path: "Play_select",
+    element: <Play_select />
+  },
+  {
+    path: "CustomerComponent",
+    element: <CustomerComponent />
+  },
+  {
+    path: "DriverComponent",
+    element: <DriverComponent />
   },
 ]);
 

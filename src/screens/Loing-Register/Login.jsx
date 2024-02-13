@@ -48,7 +48,7 @@ function Login() {
         // ถ้าไม่ติก Remember me จะลบข้อมูลการเข้าสู่ระบบที่จำไว้
         localStorage.removeItem("rememberMeData");
       }
-      navigate("/CustomerMain");
+      navigate("/Play_select");
     } catch (error) {
       console.error("Error logging in:", error);
       alert("Error logging in. Please check your credentials.");

@@ -28,10 +28,11 @@ function Navbar() {
           </li> */}
           <li>
             <Link to="/Login">Login</Link>
+            {/* <Link to="/CustomerComponent">Login</Link> */}
           </li>
           <li>
             <Link to="/UI_select">Register</Link>
-            {/* <Link to="/RegisterCustomer">Customer</Link> */}
+            {/* <Link to="/DriverComponent">Customer</Link> */}
             
           </li>
           <li>
