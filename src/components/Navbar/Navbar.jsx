@@ -6,7 +6,8 @@ const navbarStyle = {
   top: "0",
   left: "0",
   right: "0",
-  backgroundColor: "rgba(255, 255, 255, 0.0)",
+ 
+  
   display: "flex",
   marginTop: "15px",
   color: "#000",

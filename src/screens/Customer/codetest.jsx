@@ -1,9 +1,7 @@
-/* eslint-disable no-unused-vars */
-// CustomerComponent.jsx
 import { useState, useEffect } from "react";
 import io from "socket.io-client";
 import MapContainer from "./MapContainer ";
-import { LoadScript, Autocomplete } from "@react-google-maps/api";
+import { GoogleMap, LoadScript, Autocomplete } from "@react-google-maps/api";
 
 const socket = io("http://localhost:3000");
 
@@ -107,81 +105,74 @@ const CustomerComponent = () => {
           </div>
         </div>
       </div>
-      <div style={{ display: "flex" }}>
-        <div className="w-80 flex flex-col items-center justify-center h-screen">
-          <h2>Customer Component</h2>
-          <select
-            value={selectedVehicle}
-            onChange={(e) => setSelectedVehicle(e.target.value)}
-            className="my-4 p-2 border border-gray-300 rounded-md"
+     <div  style={{ display: 'flex' }}>
+     <div className="w-80 flex flex-col items-center justify-center h-screen">
+        <h2>Customer Component</h2>
+        <select
+          value={selectedVehicle}
+          onChange={(e) => setSelectedVehicle(e.target.value)}
+          className="my-4 p-2 border border-gray-300 rounded-md"
+        >
+          <option value="">Select Vehicle</option>
+          <option value="Car">Car</option>
+          <option value="Truck">Truck</option>
+          <option value="Motorcycle">Motorcycle</option>
+        </select>
+        <select
+          value={bookingStatus}
+          onChange={(e) => setBookingStatus(e.target.value)}
+          className="my-4 p-2 border border-gray-300 rounded-md"
+        >
+          <option value="">Select Booking Status</option>
+          <option value="Urgent">Urgent</option>
+          <option value="Advance Booking">Advance Booking</option>
+          <option value="Full Day Charter">Full Day Charter</option>
+        </select>
+        <LoadScript googleMapsApiKey="AIzaSyAp5OleyH2H46AGS4kFoPvVu2SDZqCz5nc" libraries={libraries}>
+          <Autocomplete
+            onLoad={(autocomplete) => console.log(autocomplete)}
+            onPlaceChanged={() => console.log('onPlaceChanged')}
+            options={{ types: ['geocode'] }}
           >
-            <option value="">Select Vehicle</option>
-            <option value="Car">Car</option>
-            <option value="Truck">Truck</option>
-            <option value="Motorcycle">Motorcycle</option>
-          </select>
-          <select
-            value={bookingStatus}
-            onChange={(e) => setBookingStatus(e.target.value)}
-            className="my-4 p-2 border border-gray-300 rounded-md"
+            <input
+              type="text"
+              placeholder="Pickup Location"
+              value={pickupLocation}
+              onChange={(e) => setPickupLocation(e.target.value)}
+              className="my-4 p-2 border border-gray-300 rounded-md"
+            />
+          </Autocomplete>
+        </LoadScript>
+        <LoadScript googleMapsApiKey="AIzaSyAp5OleyH2H46AGS4kFoPvVu2SDZqCz5nc" libraries={libraries}>
+          <Autocomplete
+            onLoad={(autocomplete) => console.log(autocomplete)}
+            onPlaceChanged={() => console.log('onPlaceChanged')}
+            options={{ types: ['geocode'] }}
           >
-            <option value="">Select Booking Status</option>
-            <option value="Urgent">Urgent</option>
-            <option value="Advance Booking">Advance Booking</option>
-            <option value="Full Day Charter">Full Day Charter</option>
-          </select>
-          <LoadScript
-            googleMapsApiKey="AIzaSyAp5OleyH2H46AGS4kFoPvVu2SDZqCz5nc"
-            libraries={libraries}
-          >
-            <Autocomplete
-              onLoad={(autocomplete) => console.log(autocomplete)}
-              onPlaceChanged={() => console.log("onPlaceChanged")}
-              options={{ types: ["geocode"] }}
-            >
-              <input
-                type="text"
-                placeholder="Pickup Location"
-                value={pickupLocation}
-                onChange={(e) => setPickupLocation(e.target.value)}
-                className="my-4 p-2 border border-gray-300 rounded-md"
-              />
-            </Autocomplete>
-          </LoadScript>
-          <LoadScript
-            googleMapsApiKey="AIzaSyAp5OleyH2H46AGS4kFoPvVu2SDZqCz5nc"
-            libraries={libraries}
-          >
-            <Autocomplete
-              onLoad={(autocomplete) => console.log(autocomplete)}
-              onPlaceChanged={() => console.log("onPlaceChanged")}
-              options={{ types: ["geocode"] }}
-            >
-              <input
-                type="text"
-                placeholder="Destination"
-                value={destination}
-                onChange={(e) => setDestination(e.target.value)}
-                className="my-4 p-2 border border-gray-300 rounded-md"
-              />
-            </Autocomplete>
-          </LoadScript>
-          <button
-            onClick={handleOrder}
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-          >
-            Place Order
-          </button>
-        </div>
-        <MapContainer
-          selectingPickup={!pickupLocation}
-          onPickupSelected={handlePickupSelected}
-          onDestinationSelected={handleDestinationSelected}
-          style={{ width: "100%", height: "400px", border: "1px solid black" }}
-        />
+            <input
+              type="text"
+              placeholder="Destination"
+              value={destination}
+              onChange={(e) => setDestination(e.target.value)}
+              className="my-4 p-2 border border-gray-300 rounded-md"
+            />
+          </Autocomplete>
+        </LoadScript>
+        <button onClick={handleOrder} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+          Place Order
+        </button>
       </div>
+      <MapContainer
+    selectingPickup={!pickupLocation}
+    onPickupSelected={handlePickupSelected}
+    onDestinationSelected={handleDestinationSelected}
+    style={{ width: '100%', height: '400px', border: '1px solid black' }}
+  />
+     </div>
     </>
   );
 };
+
+
 
 export default CustomerComponent;

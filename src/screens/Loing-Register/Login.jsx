@@ -138,6 +138,17 @@ function Login() {
                 Sign in
               </button>
             </div>
+            <div className="text-sm">
+              <h1 style={{ color: "black" }}>
+              Don't have an account?{" "}
+                <Link
+                  to="/UI_select"
+                  className="underline font-medium text-indigo-600 hover:text-indigo-500"
+                >
+                   Register
+                </Link>
+              </h1>
+            </div>
           </form>
         </div>
       </div>
