@@ -25,34 +25,42 @@ const MapContainer = (props) => {
     const lat = place.geometry.location.lat();
     const lng = place.geometry.location.lng();
     setPickupPosition({ lat, lng });
-    console.log(setDestinationPosition)
     props.onPickupSelected({ lat, lng });
   };
-
+  
   const handleDestinationAutocomplete = (place) => {
     const lat = place.geometry.location.lat();
     const lng = place.geometry.location.lng();
     setDestinationPosition({ lat, lng });
     props.onDestinationSelected({ lat, lng });
   };
+  
+  
+
+
 
   return (
     <>
-      <Map
-        google={props.google}
-        zoom={14}
-        initialCenter={{ lat: 13.7563, lng: 100.5018 }} // ตำแหน่งเริ่มต้นที่บางกอก, ประเทศไทย
-        onClick={handleMapClick}
-      >
-        {pickupPosition && <Marker position={pickupPosition} />}
-        {destinationPosition && <Marker position={destinationPosition} />}
-      </Map>
+    <Map
+  google={props.google}
+  zoom={14}
+  initialCenter={{ lat: 13.7563, lng: 100.5018 }}
+  onClick={handleMapClick}
+>
+  {pickupPosition && <Marker position={pickupPosition} label="Pickup Location" />}
+  {destinationPosition && <Marker position={destinationPosition} label="Destination Location" />}
+</Map>
+
       <div style={{ position: "absolute", top: 135, left: 329, zIndex: 100 }}>
         <Autocomplete
           onLoad={(autocomplete) => console.log(autocomplete)}
           onPlaceChanged={() => console.log("onPlaceChanged")}
           options={{ types: ["geocode"] }}
           onPlaceSelected={handlePickupAutocomplete}
+          autocompleteOptions={{
+            componentRestrictions: { country: "th" },
+            types: ["establishment"],
+          }}
           
         >
           <input
@@ -67,6 +75,10 @@ const MapContainer = (props) => {
           onPlaceChanged={() => console.log("onPlaceChanged")}
           options={{ types: ["geocode"] }}
           onPlaceSelected={handleDestinationAutocomplete}
+          autocompleteOptions={{
+            componentRestrictions: { country: "th" },
+            types: ["establishment"],
+          }}
         >
           <input
             type="text"

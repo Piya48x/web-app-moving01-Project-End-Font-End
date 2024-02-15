@@ -1,118 +1,156 @@
-/* eslint-disable no-unused-vars */
-// CustomerComponent.jsx
-import { useState, useEffect } from "react";
-import io from "socket.io-client";
-import MapContainer from "./MapContainer ";
-import { LoadScript, Autocomplete } from "@react-google-maps/api";
+import React, { useState, useEffect } from "react";
 
-const socket = io("http://localhost:3000");
+// Define your Google Maps API key
+const googleMapsApiKey = "AIzaSyDCLtYSgJKmcFtspJRbjQ8wqjvhHLzNVhE";
 
-const libraries = ["places"];
+function CustomerComponent() {
+  const [pickupLocation, setPickupLocation] = useState(null);
+  const [dropoffLocation, setDropoffLocation] = useState(null);
+  const [currentPosition, setCurrentPosition] = useState({ lat: 0, lng: 0 });
+  const [pickupMarker, setPickupMarker] = useState(null);
+  const [dropoffMarker, setDropoffMarker] = useState(null);
 
-const CustomerComponent = () => {
-  const [pickupLocation, setPickupLocation] = useState("");
-  const [destination, setDestination] = useState("");
-  const [selectedVehicle, setSelectedVehicle] = useState("");
-  const [bookingStatus, setBookingStatus] = useState("");
-
-  const handlePickupSelected = (location) => {
-    setPickupLocation(JSON.stringify(location));
-  };
-
-  const handleDestinationSelected = (location) => {
-    setDestination(JSON.stringify(location));
-  };
-
-  const handleOrder = async () => {
-    const orderData = {
-      pickupLocation,
-      destination,
-      selectedVehicle,
-      bookingStatus,
+  useEffect(() => {
+    const successCallback = (position) => {
+      const { latitude, longitude } = position.coords;
+      setCurrentPosition({ lat: latitude, lng: longitude });
     };
 
-    try {
-      const response = await fetch("http://localhost:3000/api/order", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(orderData),
+    const errorCallback = (error) => {
+      console.error("Error getting geolocation:", error);
+    };
+
+    navigator.geolocation.getCurrentPosition(successCallback, errorCallback);
+  }, []);
+
+  useEffect(() => {
+    const initMap = () => {
+      const map = new window.google.maps.Map(document.getElementById("map"), {
+        center: { lat: currentPosition.lat, lng: currentPosition.lng },
+        zoom: 15,
       });
 
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
+      const pickupAutocomplete = new window.google.maps.places.Autocomplete(
+        document.getElementById("pickup-input")
+      );
 
-      const responseData = await response.json();
-      console.log(responseData);
-      alert("Order placed successfully");
-      setPickupLocation("");
-      setDestination("");
-      setSelectedVehicle("");
-      setBookingStatus("");
+      const dropoffAutocomplete = new window.google.maps.places.Autocomplete(
+        document.getElementById("dropoff-input")
+      );
 
-      // Send 'orderReceived' event to server
-      socket.emit("orderReceived");
-    } catch (error) {
-      console.error("Error placing order:", error);
-      alert("Error placing order");
+      pickupAutocomplete.addListener("place_changed", () => {
+        const place = pickupAutocomplete.getPlace();
+        setPickupLocation({
+          lat: place.geometry.location.lat(),
+          lng: place.geometry.location.lng(),
+          name: place.name,
+        });
+
+        if (pickupMarker) {
+          pickupMarker.setMap(null);
+        }
+
+        const marker = new window.google.maps.Marker({
+          position: {
+            lat: place.geometry.location.lat(),
+            lng: place.geometry.location.lng(),
+          },
+          map: map,
+          title: place.name,
+        });
+
+        setPickupMarker(marker);
+      });
+
+      dropoffAutocomplete.addListener("place_changed", () => {
+        const place = dropoffAutocomplete.getPlace();
+        setDropoffLocation({
+          lat: place.geometry.location.lat(),
+          lng: place.geometry.location.lng(),
+          name: place.name,
+        });
+
+        if (dropoffMarker) {
+          dropoffMarker.setMap(null);
+        }
+
+        const marker = new window.google.maps.Marker({
+          position: {
+            lat: place.geometry.location.lat(),
+            lng: place.geometry.location.lng(),
+          },
+          map: map,
+          title: place.name,
+        });
+
+        setDropoffMarker(marker);
+      });
+    };
+
+    const script = document.createElement("script");
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${googleMapsApiKey}&libraries=places`;
+    script.async = true;
+    script.onload = initMap;
+    document.head.appendChild(script);
+
+    return () => {
+      document.head.removeChild(script);
+    };
+  }, [currentPosition]);
+
+  const clearPickupLocation = () => {
+    setPickupLocation(null);
+    document.getElementById("pickup-input").value = "";
+
+    if (pickupMarker) {
+      pickupMarker.setMap(null);
+    }
+  };
+
+  const clearDropoffLocation = () => {
+    setDropoffLocation(null);
+    document.getElementById("dropoff-input").value = "";
+
+    if (dropoffMarker) {
+      dropoffMarker.setMap(null);
     }
   };
 
   return (
     <>
-      <div className="navbar bg-base-100">
-        <div className="flex-1">
-          <a className="btn btn-ghost text-xl">daisyUI</a>
-        </div>
-        <div className="flex-none gap-2">
-          <div className="form-control">
-            <input
-              type="text"
-              placeholder="Search"
-              className="input input-bordered w-24 md:w-auto"
-            />
-          </div>
-          <div className="dropdown dropdown-end">
-            <div
-              tabIndex={0}
-              role="button"
-              className="btn btn-ghost btn-circle avatar"
-            >
-              <div className="w-10 rounded-full">
-                <img
-                  alt="Tailwind CSS Navbar component"
-                  src="https://daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg"
-                />
-              </div>
-            </div>
-            <ul
-              tabIndex={0}
-              className="mt-3 z-[1] p-2 shadow menu menu-sm dropdown-content bg-base-100 rounded-box w-52"
-            >
-              <li>
-                <a className="justify-between">
-                  Profile
-                  <span className="badge">New</span>
-                </a>
-              </li>
-              <li>
-                <a>Settings</a>
-              </li>
-              <li>
-                <a>Logout</a>
-              </li>
-            </ul>
-          </div>
+    <div className="navbar bg-base-100">
+  <div className="flex-1">
+    <a className="btn btn-ghost text-xl">daisyUI</a>
+  </div>
+  <div className="flex-none">
+    <div className="dropdown dropdown-end">
+    
+     
+    </div>
+    <div className="dropdown dropdown-end">
+      <div tabIndex={0} role="button" className="btn btn-ghost btn-circle avatar">
+        <div className="w-10 rounded-full">
+          <img alt="Tailwind CSS Navbar component" src="https://daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg" />
         </div>
       </div>
-      <div style={{ display: "flex" }}>
+      <ul tabIndex={0} className="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
+        <li>
+          <a className="justify-between">
+            Profile
+            <span className="badge">New</span>
+          </a>
+        </li>
+        <li><a>Settings</a></li>
+        <li><a>Logout</a></li>
+      </ul>
+    </div>
+  </div>
+</div>
+     <div style={{ display: "flex" }}>
         <div className="w-80 flex flex-col items-center justify-center h-screen">
           <h2>Customer Component</h2>
           <select
-            value={selectedVehicle}
-            onChange={(e) => setSelectedVehicle(e.target.value)}
+           
             className="my-4 p-2 border border-gray-300 rounded-md"
           >
             <option value="">Select Vehicle</option>
@@ -121,67 +159,53 @@ const CustomerComponent = () => {
             <option value="Motorcycle">Motorcycle</option>
           </select>
           <select
-            value={bookingStatus}
-            onChange={(e) => setBookingStatus(e.target.value)}
-            className="my-4 p-2 border border-gray-300 rounded-md"
+          
           >
             <option value="">Select Booking Status</option>
             <option value="Urgent">Urgent</option>
             <option value="Advance Booking">Advance Booking</option>
             <option value="Full Day Charter">Full Day Charter</option>
           </select>
-          <LoadScript
-            googleMapsApiKey="AIzaSyAp5OleyH2H46AGS4kFoPvVu2SDZqCz5nc"
-            libraries={libraries}
-          >
-            <Autocomplete
-              onLoad={(autocomplete) => console.log(autocomplete)}
-              onPlaceChanged={() => console.log("onPlaceChanged")}
-              options={{ types: ["geocode"] }}
-            >
-              <input
-                type="text"
-                placeholder="Pickup Location"
-                value={pickupLocation}
-                onChange={(e) => setPickupLocation(e.target.value)}
-                className="my-4 p-2 border border-gray-300 rounded-md"
-              />
-            </Autocomplete>
-          </LoadScript>
-          <LoadScript
-            googleMapsApiKey="AIzaSyAp5OleyH2H46AGS4kFoPvVu2SDZqCz5nc"
-            libraries={libraries}
-          >
-            <Autocomplete
-              onLoad={(autocomplete) => console.log(autocomplete)}
-              onPlaceChanged={() => console.log("onPlaceChanged")}
-              options={{ types: ["geocode"] }}
-            >
-              <input
-                type="text"
-                placeholder="Destination"
-                value={destination}
-                onChange={(e) => setDestination(e.target.value)}
-                className="my-4 p-2 border border-gray-300 rounded-md"
-              />
-            </Autocomplete>
-          </LoadScript>
+        
           <button
-            onClick={handleOrder}
             className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
           >
             Place Order
           </button>
         </div>
-        <MapContainer
-          selectingPickup={!pickupLocation}
-          onPickupSelected={handlePickupSelected}
-          onDestinationSelected={handleDestinationSelected}
-          style={{ width: "100%", height: "400px", border: "1px solid black" }}
-        />
+        <div >
+        <div >
+          <input
+            id="pickup-input"
+            type="text"
+            placeholder="Enter pick-up location"
+            className="mt-0 my-4 p-2 border border-blue-300 rounded-md bg-white text-black"
+          />
+          <input
+            id="dropoff-input"
+            type="text"
+            placeholder="Enter drop-off location"
+            className="mt-0 my-4 p-2 border border-blue-300 rounded-md bg-white text-black"
+          />
+        </div>
+      
+        <div id="map" style={{ height: "100%", width: "359%" }}></div>
+
+       
+
+        {pickupLocation && (
+          <button onClick={clearPickupLocation}>Clear Pick-up Location</button>
+        )}
+        {dropoffLocation && (
+          <button onClick={clearDropoffLocation}>
+            Clear Drop-off Location
+          </button>
+        )}
       </div>
+      </div>
+     
     </>
   );
-};
+}
 
 export default CustomerComponent;
