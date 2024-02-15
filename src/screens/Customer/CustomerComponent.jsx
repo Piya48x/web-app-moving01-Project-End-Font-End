@@ -1,14 +1,20 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 
 // Define your Google Maps API key
 const googleMapsApiKey = "AIzaSyDCLtYSgJKmcFtspJRbjQ8wqjvhHLzNVhE";
 
 function CustomerComponent() {
+  const [selectedVehicle, setSelectedVehicle] = useState("");
+  const [selectedBookingStatus, setSelectedBookingStatus] = useState("");
+  const [pickupLocationInput, setPickupLocationInput] = useState("");
+  const [dropoffLocationInput, setDropoffLocationInput] = useState("");
   const [pickupLocation, setPickupLocation] = useState(null);
   const [dropoffLocation, setDropoffLocation] = useState(null);
   const [currentPosition, setCurrentPosition] = useState({ lat: 0, lng: 0 });
   const [pickupMarker, setPickupMarker] = useState(null);
   const [dropoffMarker, setDropoffMarker] = useState(null);
+  // const [bookingStatus, setBookingStatus] = useState("");
+  const [selectedDateTime, setSelectedDateTime] = useState(null);
 
   useEffect(() => {
     const successCallback = (position) => {
@@ -100,7 +106,7 @@ function CustomerComponent() {
 
   const clearPickupLocation = () => {
     setPickupLocation(null);
-    document.getElementById("pickup-input").value = "";
+    setPickupLocationInput("");
 
     if (pickupMarker) {
       pickupMarker.setMap(null);
@@ -109,101 +115,164 @@ function CustomerComponent() {
 
   const clearDropoffLocation = () => {
     setDropoffLocation(null);
-    document.getElementById("dropoff-input").value = "";
+    setDropoffLocationInput("");
 
     if (dropoffMarker) {
       dropoffMarker.setMap(null);
     }
   };
 
+  const handleBookingStatusChange = (status) => {
+    if (status === "Scheduled") {
+      // ทำอะไรกับวันที่และเวลาที่ผู้ใช้เลือกจาก date input ในนี้
+      // เพิ่มการเรียกใช้ setSelectedBookingStatus เพื่อเก็บสถานะการจอง
+      // ส่งวันที่และเวลาที่ผู้ใช้เลือกไปยังเซิร์ฟเวอร์
+      const selectedDateTimeValue = new Date(selectedDateTime).toLocaleString();
+      setSelectedDateTime(selectedDateTimeValue);
+      setSelectedBookingStatus(status);
+    } else {
+      // ถ้าไม่ใช่ "Scheduled" ให้เซ็ตสถานะการจองเหมือนเดิม
+      setSelectedBookingStatus(status);
+    }
+  };
+  
+
+  const handleSubmit = () => {
+    // Here you can send the selected data to the server
+    console.log("Selected Vehicle:", selectedVehicle);
+    console.log("Selected Booking Status:", selectedBookingStatus);
+    console.log("Pickup Location:", pickupLocation);
+    console.log("Dropoff Location:", dropoffLocation);
+  };
+
   return (
     <>
-    <div className="navbar bg-base-100">
-  <div className="flex-1">
-    <a className="btn btn-ghost text-xl">daisyUI</a>
-  </div>
-  <div className="flex-none">
-    <div className="dropdown dropdown-end">
-    
-     
-    </div>
-    <div className="dropdown dropdown-end">
-      <div tabIndex={0} role="button" className="btn btn-ghost btn-circle avatar">
-        <div className="w-10 rounded-full">
-          <img alt="Tailwind CSS Navbar component" src="https://daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg" />
-        </div>
-      </div>
-      <ul tabIndex={0} className="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
-        <li>
-          <a className="justify-between">
-            Profile
-            <span className="badge">New</span>
-          </a>
-        </li>
-        <li><a>Settings</a></li>
-        <li><a>Logout</a></li>
-      </ul>
-    </div>
-  </div>
-</div>
-     <div style={{ display: "flex" }}>
-        <div className="w-80 flex flex-col items-center justify-center h-screen">
-          <h2>Customer Component</h2>
-          <select
-           
-            className="my-4 p-2 border border-gray-300 rounded-md"
-          >
-            <option value="">Select Vehicle</option>
-            <option value="Car">Car</option>
-            <option value="Truck">Truck</option>
-            <option value="Motorcycle">Motorcycle</option>
-          </select>
-          <select
-          
-          >
-            <option value="">Select Booking Status</option>
-            <option value="Urgent">Urgent</option>
-            <option value="Advance Booking">Advance Booking</option>
-            <option value="Full Day Charter">Full Day Charter</option>
-          </select>
-        
-          <button
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-          >
-            Place Order
-          </button>
-        </div>
-        <div >
-        <div >
-          <input
-            id="pickup-input"
-            type="text"
-            placeholder="Enter pick-up location"
-            className="mt-0 my-4 p-2 border border-blue-300 rounded-md bg-white text-black"
-          />
-          <input
-            id="dropoff-input"
-            type="text"
-            placeholder="Enter drop-off location"
-            className="mt-0 my-4 p-2 border border-blue-300 rounded-md bg-white text-black"
-          />
-        </div>
-      
-        <div id="map" style={{ height: "100%", width: "359%" }}></div>
+      <div className="flex flex-col h-screen">
+        <div className="flex flex-1">
+          <div className="w-full md:w-1/4 bg-white p-4 flex flex-col">
+            <div className="mb-4">
+              <label
+                className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
+                htmlFor="vehicle"
+              >
+                Select Vehicle
+              </label>
+              <select
+                id="vehicle"
+                className="w-full p-2 border border-gray-300 rounded-md "
+                value={selectedVehicle}
+                onChange={(e) => setSelectedVehicle(e.target.value)}
+              >
+                <option value="">Select Vehicle</option>
+                <option value="Motorcycle">Motorcycle</option>
+                <option value="3-Wheeler">3-Wheeler</option>
+                <option value="Pickup Truck">Pickup Truck</option>
+                <option value="6-Wheeler-Truck">6-Wheeler-Truck</option>
+              </select>
+            </div>
+            <div style={{ marginTop: "50px" }}>
+              <label
+                className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
+                htmlFor="bookingStatus"
+              >
+                Select Booking
+              </label>
+              <div
+                className={`border border-gray-300 rounded-md mb-4 p-2 cursor-pointer ${
+                  selectedBookingStatus === "Urgent" ? "bg-yellow-200" : ""
+                }`}
+                onClick={() => handleBookingStatusChange("Urgent")}
+              >
+                Urgent
+              </div>
+              <div
+                className={`border border-gray-300 rounded-md mb-4 p-2 cursor-pointer ${
+                  selectedBookingStatus === "Scheduled" ? "bg-green-200" : ""
+                }`}
+                onClick={() => handleBookingStatusChange("Scheduled")}
+              >
+                {selectedBookingStatus === "Scheduled" ? (
+                  <>
+                    Scheduled:{" "}
+                    {selectedDateTime || "Please select date and time"}
+                  </>
+                ) : (
+                  "Scheduled"
+                )}
+              </div>
 
-       
+              <div
+                className={`border border-gray-300 rounded-md mb-4 p-2 cursor-pointer ${
+                  selectedBookingStatus === "Full Day" ? "bg-blue-200" : ""
+                }`}
+                onClick={() => handleBookingStatusChange("Full Day")}
+              >
+                Full Day
+              </div>
+              {selectedBookingStatus === "Scheduled" && (
+                <input
+                  type="datetime-local"
+                  className="w-full p-2 border border-gray-300 rounded-md mb-4"
+                  value={selectedDateTime} // ตรงนี้ต้องระบุค่าที่ผู้ใช้เลือกจาก date input
+                  onChange={(e) => setSelectedDateTime(e.target.value)}
+                />
+              )}
+            </div>
 
-        {pickupLocation && (
-          <button onClick={clearPickupLocation}>Clear Pick-up Location</button>
-        )}
-        {dropoffLocation && (
-          <button onClick={clearDropoffLocation}>
-            Clear Drop-off Location
-          </button>
-        )}
+            <div style={{ marginTop: "50px" }}>
+              <label
+                className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
+                htmlFor="pickup-input"
+              >
+                Select Location
+              </label>
+              <input
+                id="pickup-input"
+                type="text"
+                placeholder="Enter pick-up location"
+                className="w-full p-2 border border-gray-300 rounded-md mb-4 "
+                value={pickupLocationInput}
+                onChange={(e) => setPickupLocationInput(e.target.value)}
+              />
+              <input
+                id="dropoff-input"
+                type="text"
+                placeholder="Enter drop-off location"
+                className="w-full p-2 border border-gray-300 rounded-md mb-4"
+                value={dropoffLocationInput}
+                onChange={(e) => setDropoffLocationInput(e.target.value)}
+              />
+              {pickupLocation && (
+                <button
+                  className="w-full bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+                  onClick={clearPickupLocation}
+                >
+                  Clear Pick-up Location
+                </button>
+              )}
+              {dropoffLocation && (
+                <button
+                  className="w-full mt-1 bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+                  onClick={clearDropoffLocation}
+                >
+                  Clear Drop-off Location
+                </button>
+              )}
+              <button
+                className="w-full mt-4 bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
+                onClick={handleSubmit}
+              >
+                Confirm Order
+              </button>
+            </div>
+          </div>
+          <div
+            className="w-full md:w-3/4"
+            id="map"
+            style={{ height: "100vh" }}
+          ></div>
+        </div>
       </div>
-      </div>
-     
     </>
   );
 }
