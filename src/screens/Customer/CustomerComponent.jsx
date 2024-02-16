@@ -1,7 +1,13 @@
 import { useState, useEffect } from "react";
+import moment from "moment";
+import "moment/locale/th"; // Import Thai locale
+import io from "socket.io-client";
+
+const socket = io("http://localhost:3000");
 
 // Define your Google Maps API key
-const googleMapsApiKey = "AIzaSyDCLtYSgJKmcFtspJRbjQ8wqjvhHLzNVhE";
+const googleMapsApiKey = "AIzaSyDkhKuFJcfoYeqa7R4L7xek8FtIGgAtm3o";
+// AIzaSyDCLtYSgJKmcFtspJRbjQ8wqjvhHLzNVhE
 
 function CustomerComponent() {
   const [selectedVehicle, setSelectedVehicle] = useState("");
@@ -13,7 +19,6 @@ function CustomerComponent() {
   const [currentPosition, setCurrentPosition] = useState({ lat: 0, lng: 0 });
   const [pickupMarker, setPickupMarker] = useState(null);
   const [dropoffMarker, setDropoffMarker] = useState(null);
-  // const [bookingStatus, setBookingStatus] = useState("");
   const [selectedDateTime, setSelectedDateTime] = useState(null);
 
   useEffect(() => {
@@ -124,26 +129,26 @@ function CustomerComponent() {
 
   const handleBookingStatusChange = (status) => {
     if (status === "Scheduled") {
-      // ทำอะไรกับวันที่และเวลาที่ผู้ใช้เลือกจาก date input ในนี้
-      // เพิ่มการเรียกใช้ setSelectedBookingStatus เพื่อเก็บสถานะการจอง
-      // ส่งวันที่และเวลาที่ผู้ใช้เลือกไปยังเซิร์ฟเวอร์
-      const selectedDateTimeValue = new Date(selectedDateTime).toLocaleString();
-      setSelectedDateTime(selectedDateTimeValue);
+      setSelectedDateTime(new Date());
       setSelectedBookingStatus(status);
     } else {
-      // ถ้าไม่ใช่ "Scheduled" ให้เซ็ตสถานะการจองเหมือนเดิม
       setSelectedBookingStatus(status);
     }
   };
-  
 
   const handleSubmit = () => {
-    // Here you can send the selected data to the server
     console.log("Selected Vehicle:", selectedVehicle);
-    console.log("Selected Booking Status:", selectedBookingStatus);
+    console.log(
+      "Selected Booking Status:",
+      selectedBookingStatus === "Scheduled"
+        ? moment(selectedDateTime).locale("th").format("YYYY-MM-DD T HH:mm")
+        : selectedBookingStatus
+    );
     console.log("Pickup Location:", pickupLocation);
     console.log("Dropoff Location:", dropoffLocation);
   };
+
+  
 
   return (
     <>
@@ -179,7 +184,9 @@ function CustomerComponent() {
               </label>
               <div
                 className={`border border-gray-300 rounded-md mb-4 p-2 cursor-pointer ${
-                  selectedBookingStatus === "Urgent" ? "bg-yellow-200" : ""
+                  selectedBookingStatus === "Urgent"
+                    ? "bg-yellow-500 text-white"
+                    : ""
                 }`}
                 onClick={() => handleBookingStatusChange("Urgent")}
               >
@@ -187,36 +194,50 @@ function CustomerComponent() {
               </div>
               <div
                 className={`border border-gray-300 rounded-md mb-4 p-2 cursor-pointer ${
-                  selectedBookingStatus === "Scheduled" ? "bg-green-200" : ""
+                  selectedBookingStatus === "Scheduled"
+                    ? "bg-green-700 text-white"
+                    : ""
                 }`}
                 onClick={() => handleBookingStatusChange("Scheduled")}
               >
                 {selectedBookingStatus === "Scheduled" ? (
                   <>
                     Scheduled:{" "}
-                    {selectedDateTime || "Please select date and time"}
+                    {selectedDateTime
+                      ? moment(selectedDateTime).locale("th").format("YYYY-MM-DD T HH:mm")
+
+
+                      : "กรุณาเลือกเวลา"}
                   </>
                 ) : (
                   "Scheduled"
                 )}
               </div>
+              {selectedBookingStatus === "Scheduled" && (
+                <input
+                  type="datetime-local"
+                  className="w-full p-2 border border-gray-300 rounded-md mb-4 bg-green-500 text-white"
+                  value={
+                    selectedDateTime
+                      ? moment(selectedDateTime)
+                          .locale("th")
+                          .format("YYYY-MM-DDTHH:mm")
+                      : ""
+                  }
+                  onChange={(e) => setSelectedDateTime(e.target.value)}
+                />
+              )}
 
               <div
                 className={`border border-gray-300 rounded-md mb-4 p-2 cursor-pointer ${
-                  selectedBookingStatus === "Full Day" ? "bg-blue-200" : ""
+                  selectedBookingStatus === "Full Day"
+                    ? "bg-blue-500 text-white"
+                    : ""
                 }`}
                 onClick={() => handleBookingStatusChange("Full Day")}
               >
                 Full Day
               </div>
-              {selectedBookingStatus === "Scheduled" && (
-                <input
-                  type="datetime-local"
-                  className="w-full p-2 border border-gray-300 rounded-md mb-4"
-                  value={selectedDateTime} // ตรงนี้ต้องระบุค่าที่ผู้ใช้เลือกจาก date input
-                  onChange={(e) => setSelectedDateTime(e.target.value)}
-                />
-              )}
             </div>
 
             <div style={{ marginTop: "50px" }}>
