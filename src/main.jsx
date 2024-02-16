@@ -21,6 +21,8 @@ import Play_select from "./screens/Loing-Register/Play_select.jsx";
 import CustomerComponent from "./screens/Customer/CustomerComponent.jsx";
 import DriverComponent from "./screens/Service/DriverComponent.jsx";
 import Mab from "./screens/Customer/Mab.jsx";
+import SuccessPage from "./screens/Service/SuccessPage.jsx";
+import FollowDriverComponent from "./screens/Service/FollowDriverComponent.jsx";
 
 const router = createBrowserRouter([
   {
@@ -74,6 +76,14 @@ const router = createBrowserRouter([
   {
     path: "Mab",
     element: <Mab />
+  },
+  {
+    path: "SuccessPage",
+    element: <SuccessPage />
+  },
+  {
+    path: "FollowDriverComponent",
+    element: <FollowDriverComponent />
   },
 ]);
 

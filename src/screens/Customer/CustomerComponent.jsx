@@ -1,8 +1,12 @@
+/* eslint-disable no-unused-vars */
 import { useState, useEffect } from "react";
 import moment from "moment";
 import "moment/locale/th";
 import io from "socket.io-client";
 import axios from "axios";
+import { useNavigate } from 'react-router-dom';
+
+
 
 const socket = io("http://localhost:3000");
 const googleMapsApiKey = "AIzaSyAp5OleyH2H46AGS4kFoPvVu2SDZqCz5nc"; // Replace with your API key
@@ -22,6 +26,54 @@ function CustomerComponent() {
   const [totalCost, setTotalCost] = useState(0);
   const [showOrderConfirmation, setShowOrderConfirmation] = useState(false);
   const [directionsRenderer, setDirectionsRenderer] = useState(null);
+  const [currentUserInfo, setCurrentUserInfo] = useState(null);
+  const navigate = useNavigate();
+
+  // ใน CustomerComponent
+  // useEffect เพื่อรับข้อความจาก DriverComponent เมื่อมีการยกเลิกการสั่งซื้อ
+  useEffect(() => {
+    const handleOrderCancelled = () => {
+      // แสดงข้อความเมื่อมีการยกเลิกการสั่งซื้อ
+      alert("คำสั่งซื้อถูกยกเลิกโดยคนขับ โปรดสั่งอีครั้ง.");
+    };
+
+    // ตั้งค่าการฟังเหตุการณ์การยกเลิกการสั่งซื้อ
+    socket.on("orderCancelled", handleOrderCancelled);
+
+    // ทำความสะอาด listener เมื่อ unmount
+    return () => {
+      socket.off("orderCancelled", handleOrderCancelled);
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleOrderCancelled1 = () => {
+      // แสดงข้อความเมื่อมีการยกเลิกการสั่งซื้อ
+      alert("คนขับได้ตอบรับ Order เรียบร้อยแล้ว.");
+      navigate('/FollowDriverComponent');
+    };
+
+    // ตั้งค่าการฟังเหตุการณ์การยกเลิกการสั่งซื้อ
+    socket.on("orderAccepted", handleOrderCancelled1);
+
+    // ทำความสะอาด listener เมื่อ unmount
+    return () => {
+      socket.off("orderAccepted", handleOrderCancelled1);
+    };
+  }, []);
+
+  // useEffect(() => {
+  //   // Listen for currentUserInfo event from DriverComponent
+  //   socket.on("currentUserInfo", (userInfo) => {
+  //     setCurrentUserInfo(userInfo);
+  //   });
+  
+  //   return () => {
+  //     // Clean up socket listener
+  //     socket.off("currentUserInfo");
+  //   };
+  // }, []);
+
   const calculateRoute = async () => {
     if (pickupLocation && dropoffLocation) {
       const directionsService = new window.google.maps.DirectionsService();
@@ -241,8 +293,8 @@ function CustomerComponent() {
         setDropoffLocation(null);
         setSelectedDateTime(null);
         setTotalDistance(0); // Reset total distance
-      setTotalCost(0); // Reset total cost
-      setShowOrderConfirmation(false); // Hide order confirmation
+        setTotalCost(0); // Reset total cost
+        setShowOrderConfirmation(false); // Hide order confirmation
       } else {
         console.error("Failed to place order:", response.statusText);
         alert("Failed to place order. Please try again later.");
@@ -253,11 +305,34 @@ function CustomerComponent() {
     }
   };
 
+  const handleViewOnGoogleMaps = () => {
+    if (pickupLocation && dropoffLocation) {
+      const pickupCoords = `${pickupLocation.lat},${pickupLocation.lng}`;
+      const dropoffCoords = `${dropoffLocation.lat},${dropoffLocation.lng}`;
+      const url = `https://www.google.com/maps/dir/?api=1&origin=${pickupCoords}&destination=${dropoffCoords}`;
+      window.open(url, "_blank");
+    }
+  };
+
   return (
     <>
       <div className="flex flex-col h-screen">
         <div className="flex flex-1">
           <div className="w-full md:w-1/4 bg-white p-4 flex flex-col">
+            <div className="container mx-auto p-4">
+              <h2 className="text-2xl font-bold mb-4">
+                Current User Information
+              </h2>
+              {currentUserInfo && (
+                <div>
+                  <p>User: {currentUserInfo.user}</p>
+                  <p>Email: {currentUserInfo.email}</p>
+
+                  <p>License Plate: {currentUserInfo.licensePlate}</p>
+                  <p>Phone Number: {currentUserInfo.phoneNumber}</p>
+                </div>
+              )}
+            </div>
             {/* Vehicle selection */}
             <div className="mb-4">
               <label
@@ -347,12 +422,7 @@ function CustomerComponent() {
               </div>
             </div>
             {/* Calculate route button */}
-            <button
-              className="w-full mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-              onClick={calculateRoute}
-            >
-              Calculate Route
-            </button>
+
             {/* Location input */}
             <div style={{ marginTop: "50px" }}>
               <label
@@ -396,11 +466,25 @@ function CustomerComponent() {
               )}
               {/* Confirm order button */}
               <button
-                className="w-full mt-4 bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
+                className="mt-4 bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
                 onClick={handleSubmit}
               >
                 Confirm Order
               </button>
+              <button
+                className="w-full mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                onClick={calculateRoute}
+              >
+                Calculate Route
+              </button>
+              {pickupLocation && dropoffLocation && (
+                <button
+                  className="w-full mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                  onClick={handleViewOnGoogleMaps}
+                >
+                  View on Google Maps
+                </button>
+              )}
             </div>
           </div>
           {/* Map */}
@@ -412,6 +496,33 @@ function CustomerComponent() {
           {/* Order confirmation */}
           {showOrderConfirmation && (
             <div className="fixed bottom-0 left-0 bg-white p-4 w-full">
+              <p>Vehicle: {selectedVehicle}</p>
+              <p>
+                Booking Status:{" "}
+                {selectedBookingStatus === "Scheduled"
+                  ? moment(selectedDateTime)
+                      .locale("th")
+                      .format("YYYY-MM-DD[T]HH:mm")
+                  : selectedBookingStatus}
+              </p>
+              {pickupLocation && (
+                <p>
+                  Pickup Location: {pickupLocation.name} (Latitude:{" "}
+                  {pickupLocation.lat}, Longitude: {pickupLocation.lng})
+                </p>
+              )}
+              {dropoffLocation && (
+                <p>
+                  Drop-off Location: {dropoffLocation.name} (Latitude:{" "}
+                  {dropoffLocation.lat}, Longitude: {dropoffLocation.lng})
+                </p>
+              )}
+              <p>
+                Selected DateTime:{" "}
+                {moment(selectedDateTime)
+                  .locale("th")
+                  .format("YYYY-MM-DD HH:mm")}
+              </p>
               <p>Total Distance: {totalDistance.toFixed(2)} km</p>
               <p>Total Cost: {totalCost.toFixed(2)} Baht</p>
               <button
