@@ -1,13 +1,11 @@
 import { useState, useEffect } from "react";
 import moment from "moment";
-import "moment/locale/th"; // Import Thai locale
+import "moment/locale/th";
 import io from "socket.io-client";
+import axios from "axios";
 
 const socket = io("http://localhost:3000");
-
-// Define your Google Maps API key
-const googleMapsApiKey = "AIzaSyDkhKuFJcfoYeqa7R4L7xek8FtIGgAtm3o";
-// AIzaSyDCLtYSgJKmcFtspJRbjQ8wqjvhHLzNVhE
+const googleMapsApiKey = "AIzaSyAp5OleyH2H46AGS4kFoPvVu2SDZqCz5nc"; // Replace with your API key
 
 function CustomerComponent() {
   const [selectedVehicle, setSelectedVehicle] = useState("");
@@ -20,6 +18,45 @@ function CustomerComponent() {
   const [pickupMarker, setPickupMarker] = useState(null);
   const [dropoffMarker, setDropoffMarker] = useState(null);
   const [selectedDateTime, setSelectedDateTime] = useState(null);
+  const [totalDistance, setTotalDistance] = useState(0);
+  const [totalCost, setTotalCost] = useState(0);
+  const [showOrderConfirmation, setShowOrderConfirmation] = useState(false);
+  const [directionsRenderer, setDirectionsRenderer] = useState(null);
+  const calculateRoute = async () => {
+    if (pickupLocation && dropoffLocation) {
+      const directionsService = new window.google.maps.DirectionsService();
+
+      const request = {
+        origin: pickupLocation,
+        destination: dropoffLocation,
+        travelMode: window.google.maps.TravelMode.DRIVING,
+      };
+
+      directionsService.route(request, (result, status) => {
+        if (status === window.google.maps.DirectionsStatus.OK) {
+          const route = result.routes[0];
+          let totalDistance = 0;
+
+          route.legs.forEach((leg) => {
+            totalDistance += leg.distance.value;
+          });
+
+          const totalDistanceInKm = totalDistance / 1000;
+          const totalCost = totalDistanceInKm * 25; // ค่าคำนวณเส้นทาง กิโลละ 25 บาท
+
+          // แสดงผลเป็นเด้งเมื่อเลือกจุดรับและจุดส่งเสร็จสิ้น
+          if (pickupLocation && dropoffLocation) {
+            setTotalDistance(totalDistanceInKm);
+            setTotalCost(totalCost);
+            setShowOrderConfirmation(true);
+          }
+        } else {
+          console.error("Error calculating route:", status);
+          alert("Error calculating route. Please try again later.");
+        }
+      });
+    }
+  };
 
   useEffect(() => {
     const successCallback = (position) => {
@@ -109,6 +146,38 @@ function CustomerComponent() {
     };
   }, [currentPosition]);
 
+  useEffect(() => {
+    if (pickupLocation && dropoffLocation) {
+      const directionsService = new window.google.maps.DirectionsService();
+      const renderer = new window.google.maps.DirectionsRenderer({
+        suppressMarkers: true,
+        preserveViewport: true,
+        polylineOptions: {
+          strokeColor: "blue",
+          strokeOpacity: 0.7,
+          strokeWeight: 5,
+        },
+      });
+
+      directionsService.route(
+        {
+          origin: pickupLocation,
+          destination: dropoffLocation,
+          travelMode: window.google.maps.TravelMode.DRIVING,
+        },
+        (result, status) => {
+          if (status === window.google.maps.DirectionsStatus.OK) {
+            renderer.setDirections(result);
+            setDirectionsRenderer(renderer);
+          } else {
+            console.error("Error calculating route:", status);
+            alert("Error calculating route. Please try again later.");
+          }
+        }
+      );
+    }
+  }, [pickupLocation, dropoffLocation]);
+
   const clearPickupLocation = () => {
     setPickupLocation(null);
     setPickupLocationInput("");
@@ -136,25 +205,60 @@ function CustomerComponent() {
     }
   };
 
-  const handleSubmit = () => {
-    console.log("Selected Vehicle:", selectedVehicle);
-    console.log(
-      "Selected Booking Status:",
-      selectedBookingStatus === "Scheduled"
-        ? moment(selectedDateTime).locale("th").format("YYYY-MM-DD T HH:mm")
-        : selectedBookingStatus
-    );
-    console.log("Pickup Location:", pickupLocation);
-    console.log("Dropoff Location:", dropoffLocation);
-  };
+  const handleSubmit = async () => {
+    // Create order data
+    const orderData = {
+      vehicle: selectedVehicle,
+      bookingStatus:
+        selectedBookingStatus === "Scheduled"
+          ? moment(selectedDateTime).locale("th").format("YYYY-MM-DD[T]HH:mm")
+          : selectedBookingStatus,
+      pickupLocation,
+      dropoffLocation,
+      selectedDateTime,
+      totalDistance,
+      totalCost,
+    };
 
-  
+    try {
+      const response = await axios.post(
+        "http://localhost:3000/api/order",
+        orderData
+      );
+      if (response.status === 200) {
+        console.log("Order placed successfully");
+        alert("Order placed successfully");
+
+        // Send 'orderReceived' event to server via Socket.IO
+        socket.emit("orderReceived");
+
+        // Reset state values
+        setSelectedVehicle("");
+        setSelectedBookingStatus("");
+        setPickupLocationInput("");
+        setDropoffLocationInput("");
+        setPickupLocation(null);
+        setDropoffLocation(null);
+        setSelectedDateTime(null);
+        setTotalDistance(0); // Reset total distance
+      setTotalCost(0); // Reset total cost
+      setShowOrderConfirmation(false); // Hide order confirmation
+      } else {
+        console.error("Failed to place order:", response.statusText);
+        alert("Failed to place order. Please try again later.");
+      }
+    } catch (error) {
+      console.error("Error placing order:", error.message);
+      alert("Error placing order. Please try again later.");
+    }
+  };
 
   return (
     <>
       <div className="flex flex-col h-screen">
         <div className="flex flex-1">
           <div className="w-full md:w-1/4 bg-white p-4 flex flex-col">
+            {/* Vehicle selection */}
             <div className="mb-4">
               <label
                 className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
@@ -175,6 +279,7 @@ function CustomerComponent() {
                 <option value="6-Wheeler-Truck">6-Wheeler-Truck</option>
               </select>
             </div>
+            {/* Booking status selection */}
             <div style={{ marginTop: "50px" }}>
               <label
                 className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
@@ -182,64 +287,73 @@ function CustomerComponent() {
               >
                 Select Booking
               </label>
-              <div
-                className={`border border-gray-300 rounded-md mb-4 p-2 cursor-pointer ${
-                  selectedBookingStatus === "Urgent"
-                    ? "bg-yellow-500 text-white"
-                    : ""
-                }`}
-                onClick={() => handleBookingStatusChange("Urgent")}
-              >
-                Urgent
-              </div>
-              <div
-                className={`border border-gray-300 rounded-md mb-4 p-2 cursor-pointer ${
-                  selectedBookingStatus === "Scheduled"
-                    ? "bg-green-700 text-white"
-                    : ""
-                }`}
-                onClick={() => handleBookingStatusChange("Scheduled")}
-              >
-                {selectedBookingStatus === "Scheduled" ? (
-                  <>
-                    Scheduled:{" "}
-                    {selectedDateTime
-                      ? moment(selectedDateTime).locale("th").format("YYYY-MM-DD T HH:mm")
-
-
-                      : "กรุณาเลือกเวลา"}
-                  </>
-                ) : (
-                  "Scheduled"
-                )}
-              </div>
-              {selectedBookingStatus === "Scheduled" && (
-                <input
-                  type="datetime-local"
-                  className="w-full p-2 border border-gray-300 rounded-md mb-4 bg-green-500 text-white"
-                  value={
-                    selectedDateTime
-                      ? moment(selectedDateTime)
-                          .locale("th")
-                          .format("YYYY-MM-DDTHH:mm")
+              {/* Booking status buttons */}
+              <div className="flex flex-wrap">
+                <div
+                  className={`border border-gray-300 rounded-md mb-4 p-2 cursor-pointer ${
+                    selectedBookingStatus === "Urgent"
+                      ? "bg-yellow-500 text-white"
                       : ""
-                  }
-                  onChange={(e) => setSelectedDateTime(e.target.value)}
-                />
-              )}
-
-              <div
-                className={`border border-gray-300 rounded-md mb-4 p-2 cursor-pointer ${
-                  selectedBookingStatus === "Full Day"
-                    ? "bg-blue-500 text-white"
-                    : ""
-                }`}
-                onClick={() => handleBookingStatusChange("Full Day")}
-              >
-                Full Day
+                  }`}
+                  onClick={() => handleBookingStatusChange("Urgent")}
+                >
+                  Urgent
+                </div>
+                <div
+                  className={`border border-gray-300 rounded-md mb-4 p-2 cursor-pointer ${
+                    selectedBookingStatus === "Scheduled"
+                      ? "bg-green-700 text-white"
+                      : ""
+                  }`}
+                  onClick={() => handleBookingStatusChange("Scheduled")}
+                >
+                  {selectedBookingStatus === "Scheduled" ? (
+                    <>
+                      Scheduled:{" "}
+                      {selectedDateTime
+                        ? moment(selectedDateTime)
+                            .locale("th")
+                            .format("YYYY-MM-DD T HH:mm")
+                        : "กรุณาเลือกเวลา"}
+                    </>
+                  ) : (
+                    "Scheduled"
+                  )}
+                </div>
+                {selectedBookingStatus === "Scheduled" && (
+                  <input
+                    type="datetime-local"
+                    className="w-full p-2 border border-gray-300 rounded-md mb-4 bg-green-500 text-white"
+                    value={
+                      selectedDateTime
+                        ? moment(selectedDateTime)
+                            .locale("th")
+                            .format("YYYY-MM-DDTHH:mm")
+                        : ""
+                    }
+                    onChange={(e) => setSelectedDateTime(e.target.value)}
+                  />
+                )}
+                <div
+                  className={`border border-gray-300 rounded-md mb-4 p-2 cursor-pointer ${
+                    selectedBookingStatus === "Full Day"
+                      ? "bg-blue-500 text-white"
+                      : ""
+                  }`}
+                  onClick={() => handleBookingStatusChange("Full Day")}
+                >
+                  Full Day
+                </div>
               </div>
             </div>
-
+            {/* Calculate route button */}
+            <button
+              className="w-full mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+              onClick={calculateRoute}
+            >
+              Calculate Route
+            </button>
+            {/* Location input */}
             <div style={{ marginTop: "50px" }}>
               <label
                 className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
@@ -263,6 +377,7 @@ function CustomerComponent() {
                 value={dropoffLocationInput}
                 onChange={(e) => setDropoffLocationInput(e.target.value)}
               />
+              {/* Clear location buttons */}
               {pickupLocation && (
                 <button
                   className="w-full bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
@@ -279,6 +394,7 @@ function CustomerComponent() {
                   Clear Drop-off Location
                 </button>
               )}
+              {/* Confirm order button */}
               <button
                 className="w-full mt-4 bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
                 onClick={handleSubmit}
@@ -287,11 +403,25 @@ function CustomerComponent() {
               </button>
             </div>
           </div>
+          {/* Map */}
           <div
             className="w-full md:w-3/4"
             id="map"
             style={{ height: "100vh" }}
           ></div>
+          {/* Order confirmation */}
+          {showOrderConfirmation && (
+            <div className="fixed bottom-0 left-0 bg-white p-4 w-full">
+              <p>Total Distance: {totalDistance.toFixed(2)} km</p>
+              <p>Total Cost: {totalCost.toFixed(2)} Baht</p>
+              <button
+                className="mt-4 bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
+                onClick={handleSubmit}
+              >
+                Confirm Order
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </>

@@ -1,95 +1,138 @@
-import { useState, useEffect } from "react";
-import io from "socket.io-client";
+import React, { useState, useEffect } from 'react';
+import io from 'socket.io-client';
 
-const socket = io("http://localhost:3000");
+// Assuming your server is running at http://localhost:3000
+const socket = io('http://localhost:3000');
 
-const DriverComponent = () => {
-  const [newOrder, setNewOrder] = useState(null);
-  const [confirmedOrder, setConfirmedOrder] = useState(null);
+// Map component
+function Map({ initialCenter, pickupLocation, dropoffLocation }) {
+  const [map, setMap] = useState(null);
+  const [directionsService, setDirectionsService] = useState(null);
+  const [directionsRenderer, setDirectionsRenderer] = useState(null);
 
   useEffect(() => {
-    // Event listener for receiving newOrder event from server
-    socket.on("newOrder", (order) => {
-      setNewOrder(order); // Update newOrder state with received order
-    });
+    const initMap = () => {
+      const newMap = new window.google.maps.Map(document.getElementById('map'), {
+        center: initialCenter,
+        zoom: 12,
+      });
 
-    // Cleanup function to remove event listener
+      const newDirectionsService = new window.google.maps.DirectionsService();
+      const newDirectionsRenderer = new window.google.maps.DirectionsRenderer();
+      newDirectionsRenderer.setMap(newMap);
+
+      setMap(newMap);
+      setDirectionsService(newDirectionsService);
+      setDirectionsRenderer(newDirectionsRenderer);
+    };
+
+    if (!window.google) {
+      console.error('Google Maps API not loaded.');
+      return;
+    }
+
+    initMap();
+
     return () => {
-      socket.off("newOrder");
+      if (map) {
+        // Clean up map instance
+        setMap(null);
+      }
+    };
+  }, [initialCenter]);
+
+  useEffect(() => {
+    if (directionsService && pickupLocation && dropoffLocation) {
+      const origin = new window.google.maps.LatLng(pickupLocation.lat, pickupLocation.lng);
+      const destination = new window.google.maps.LatLng(dropoffLocation.lat, dropoffLocation.lng);
+
+      const request = {
+        origin,
+        destination,
+        travelMode: 'DRIVING',
+      };
+
+      directionsService.route(request, (result, status) => {
+        if (status === 'OK') {
+          directionsRenderer.setDirections(result);
+        } else {
+          console.error('Directions request failed due to ' + status);
+        }
+      });
+    }
+  }, [directionsService, pickupLocation, dropoffLocation]);
+
+  return <div id="map" style={{ height: '400px', width: '100%' }}></div>;
+}
+
+
+// Driver component
+function DriverComponent() {
+  const [driverLocation, setDriverLocation] = useState(null);
+  const [order, setOrder] = useState(null);
+
+  // Function to initialize Google Maps and set driver's location
+  useEffect(() => {
+    const successCallback = (position) => {
+      const { latitude, longitude } = position.coords;
+      setDriverLocation({ lat: latitude, lng: longitude });
+    };
+
+    const errorCallback = (error) => {
+      console.error('Error getting geolocation:', error);
+    };
+
+    navigator.geolocation.getCurrentPosition(successCallback, errorCallback);
+  }, []);
+
+  // Effect to listen for new orders
+  useEffect(() => {
+    // Event listener when receiving 'newOrder' event from the server
+    const handleNewOrder = (newOrder) => {
+      // Update order state with the new order
+      setOrder(newOrder);
+    };
+
+    socket.on('newOrder', handleNewOrder);
+
+    // Clean up socket listener
+    return () => {
+      socket.off('newOrder', handleNewOrder);
     };
   }, []);
 
-  const handleConfirmOrder = () => {
-    setConfirmedOrder(newOrder); // Set confirmedOrder state with newOrder
-  };
-
   return (
-    <>
-      <div className="navbar bg-base-100">
-        <div className="flex-1">
-          <a className="btn btn-ghost text-xl">daisyUI</a>
+    <div>
+      {/* Map component */}
+      <Map
+        initialCenter={driverLocation || { lat: 0, lng: 0 }}
+        pickupLocation={order?.pickupLocation}
+        dropoffLocation={order?.dropoffLocation}
+      />
+
+      {/* Display driver's location */}
+      {driverLocation && (
+        <p>
+          Driver's Location: Latitude {driverLocation.lat}, Longitude{' '}
+          {driverLocation.lng}
+        </p>
+      )}
+
+      {/* Display order */}
+      {order && (
+        <div>
+          <h2>Order Details</h2>
+          <p>Vehicle: {order.vehicle}</p>
+          <p>Booking Status: {order.bookingStatus}</p>
+          {order.pickupLocation && <p>Pickup Location: {order.pickupLocation.name}</p>}
+          {order.dropoffLocation && <p>Drop-off Location: {order.dropoffLocation.name}</p>}
+          <p>Selected DateTime: {order.selectedDateTime}</p>
+          <p>Total Distance: {order.totalDistance} km</p>
+          <p>Total Cost: {order.totalCost} Baht</p>
         </div>
-        <div className="flex-none gap-2">
-          <div className="form-control">
-            <input
-              type="text"
-              placeholder="Search"
-              className="input input-bordered w-24 md:w-auto"
-            />
-          </div>
-          <div className="dropdown dropdown-end">
-            <div
-              tabIndex={0}
-              role="button"
-              className="btn btn-ghost btn-circle avatar"
-            >
-              <div className="w-10 rounded-full">
-                <img
-                  alt="Tailwind CSS Navbar component"
-                  src="https://daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg"
-                />
-              </div>
-            </div>
-            <ul
-              tabIndex={0}
-              className="mt-3 z-[1] p-2 shadow menu menu-sm dropdown-content bg-base-100 rounded-box w-52"
-            >
-              <li>
-                <a className="justify-between">
-                  Profile
-                  <span className="badge">New</span>
-                </a>
-              </li>
-              <li>
-                <a>Settings</a>
-              </li>
-              <li>
-                <a>Logout</a>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </div>
-      <div>
-        <h2>New Order Received</h2>
-        {newOrder && (
-          <div>
-            {!confirmedOrder && (
-              <button onClick={handleConfirmOrder}>Confirm Order</button>
-            )}
-          </div>
-        )}
-        {confirmedOrder && (
-          <div>
-            <h3>Confirmed Order</h3>
-            <p>Pickup Location: {confirmedOrder.pickupLocation}</p>
-            <p>Destination: {confirmedOrder.destination}</p>
-            <p>Selected Vehicle: {confirmedOrder.selectedVehicle}</p>
-          </div>
-        )}
-      </div>
-    </>
+      )}
+    </div>
   );
-};
+}
 
 export default DriverComponent;
