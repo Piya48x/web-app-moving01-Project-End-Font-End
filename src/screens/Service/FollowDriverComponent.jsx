@@ -1,12 +1,15 @@
 // Import necessary dependencies
 import React, { useEffect, useState } from 'react';
 import io from 'socket.io-client';
+import { useNavigate } from 'react-router-dom';
+
 
 // Assuming your server is running at http://localhost:3000
 const socket = io('http://localhost:3000');
 
 function FollowDriverComponent() {
   const [driverLocation, setDriverLocation] = useState(null);
+  const navigate = useNavigate();
 
   // Effect to listen for driver's location updates
   useEffect(() => {
@@ -21,6 +24,21 @@ function FollowDriverComponent() {
     // Clean up socket listener
     return () => {
       socket.off('driverLocationUpdate', handleDriverLocationUpdate);
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleOrderCancelled2 = () => {
+    
+      navigate('/SuccessCustomer');
+    };
+
+    // ตั้งค่าการฟังเหตุการณ์การยกเลิกการสั่งซื้อ
+    socket.on("jobFinished", handleOrderCancelled2);
+
+    // ทำความสะอาด listener เมื่อ unmount
+    return () => {
+      socket.off("jobFinished", handleOrderCancelled2);
     };
   }, []);
 

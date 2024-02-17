@@ -4,12 +4,12 @@ import moment from "moment";
 import "moment/locale/th";
 import io from "socket.io-client";
 import axios from "axios";
-import { useNavigate } from 'react-router-dom';
-
-
+import { useNavigate } from "react-router-dom";
+import NavbarCUS from "./NavbarCUS";
 
 const socket = io("http://localhost:3000");
-const googleMapsApiKey = "AIzaSyAp5OleyH2H46AGS4kFoPvVu2SDZqCz5nc"; // Replace with your API key
+//const googleMapsApiKey = "AIzaSyAp5OleyH2H46AGS4kFoPvVu2SDZqCz5nc"; // Replace with your API key
+const googleMapsApiKey = "AIzaSyDaxJ68f77blduDAbITOX0hfp-CDfhOYO4"; // Replace with your API key
 
 function CustomerComponent() {
   const [selectedVehicle, setSelectedVehicle] = useState("");
@@ -27,14 +27,16 @@ function CustomerComponent() {
   const [showOrderConfirmation, setShowOrderConfirmation] = useState(false);
   const [directionsRenderer, setDirectionsRenderer] = useState(null);
   const [currentUserInfo, setCurrentUserInfo] = useState(null);
+  const [showAlert, setShowAlert] = useState(false);
+  const [showAlert1, setShowAlert1] = useState(false);
   const navigate = useNavigate();
 
   // ใน CustomerComponent
   // useEffect เพื่อรับข้อความจาก DriverComponent เมื่อมีการยกเลิกการสั่งซื้อ
   useEffect(() => {
     const handleOrderCancelled = () => {
-      // แสดงข้อความเมื่อมีการยกเลิกการสั่งซื้อ
-      alert("คำสั่งซื้อถูกยกเลิกโดยคนขับ โปรดสั่งอีครั้ง.");
+      // ตั้งค่า showAlert เมื่อมีการยกเลิกคำสั่ง
+      setShowAlert(true);
     };
 
     // ตั้งค่าการฟังเหตุการณ์การยกเลิกการสั่งซื้อ
@@ -50,7 +52,7 @@ function CustomerComponent() {
     const handleOrderCancelled1 = () => {
       // แสดงข้อความเมื่อมีการยกเลิกการสั่งซื้อ
       alert("คนขับได้ตอบรับ Order เรียบร้อยแล้ว.");
-      navigate('/FollowDriverComponent');
+      navigate("/FollowDriverComponent");
     };
 
     // ตั้งค่าการฟังเหตุการณ์การยกเลิกการสั่งซื้อ
@@ -62,12 +64,26 @@ function CustomerComponent() {
     };
   }, []);
 
+  useEffect(() => {
+    const handleOrderCancelled2 = () => {
+      navigate("/SuccessCustomer");
+    };
+
+    // ตั้งค่าการฟังเหตุการณ์การยกเลิกการสั่งซื้อ
+    socket.on("jobFinished", handleOrderCancelled2);
+
+    // ทำความสะอาด listener เมื่อ unmount
+    return () => {
+      socket.off("jobFinished", handleOrderCancelled2);
+    };
+  }, []);
+
   // useEffect(() => {
   //   // Listen for currentUserInfo event from DriverComponent
   //   socket.on("currentUserInfo", (userInfo) => {
   //     setCurrentUserInfo(userInfo);
   //   });
-  
+
   //   return () => {
   //     // Clean up socket listener
   //     socket.off("currentUserInfo");
@@ -273,35 +289,26 @@ function CustomerComponent() {
     };
 
     try {
-      const response = await axios.post(
-        "http://localhost:3000/api/order",
-        orderData
-      );
-      if (response.status === 200) {
-        console.log("Order placed successfully");
-        alert("Order placed successfully");
+      // Send the order data to the server via Socket.IO
+      socket.emit("orderReceived", orderData);
 
-        // Send 'orderReceived' event to server via Socket.IO
-        socket.emit("orderReceived");
+      console.log("Order data sent:", orderData);
+      alert("Order data sent successfully");
 
-        // Reset state values
-        setSelectedVehicle("");
-        setSelectedBookingStatus("");
-        setPickupLocationInput("");
-        setDropoffLocationInput("");
-        setPickupLocation(null);
-        setDropoffLocation(null);
-        setSelectedDateTime(null);
-        setTotalDistance(0); // Reset total distance
-        setTotalCost(0); // Reset total cost
-        setShowOrderConfirmation(false); // Hide order confirmation
-      } else {
-        console.error("Failed to place order:", response.statusText);
-        alert("Failed to place order. Please try again later.");
-      }
+      // Reset state values
+      setSelectedVehicle("");
+      setSelectedBookingStatus("");
+      setPickupLocationInput("");
+      setDropoffLocationInput("");
+      setPickupLocation(null);
+      setDropoffLocation(null);
+      setSelectedDateTime(null);
+      setTotalDistance(0); // Reset total distance
+      setTotalCost(0); // Reset total cost
+      setShowOrderConfirmation(false); // Hide order confirmation
     } catch (error) {
-      console.error("Error placing order:", error.message);
-      alert("Error placing order. Please try again later.");
+      console.error("Error sending order data:", error.message);
+      alert("Error sending order data. Please try again later.");
     }
   };
 
@@ -314,11 +321,19 @@ function CustomerComponent() {
     }
   };
 
+  const handleRetry = () => {
+    setShowAlert(false); // ลบ showAlert ออกไป
+    // เรียกใช้ฟังก์ชันหรือเมธอดอื่น ๆ ที่คุณต้องการเมื่อกด Retry
+  };
+
   return (
     <>
+      <NavbarCUS />
       <div className="flex flex-col h-screen">
         <div className="flex flex-1">
+          {/* Left Panel */}
           <div className="w-full md:w-1/4 bg-white p-4 flex flex-col">
+            {/* Current User Information */}
             <div className="container mx-auto p-4">
               <h2 className="text-2xl font-bold mb-4">
                 Current User Information
@@ -327,7 +342,6 @@ function CustomerComponent() {
                 <div>
                   <p>User: {currentUserInfo.user}</p>
                   <p>Email: {currentUserInfo.email}</p>
-
                   <p>License Plate: {currentUserInfo.licensePlate}</p>
                   <p>Phone Number: {currentUserInfo.phoneNumber}</p>
                 </div>
@@ -422,7 +436,6 @@ function CustomerComponent() {
               </div>
             </div>
             {/* Calculate route button */}
-
             {/* Location input */}
             <div style={{ marginTop: "50px" }}>
               <label
@@ -472,11 +485,22 @@ function CustomerComponent() {
                 Confirm Order
               </button>
               <button
-                className="w-full mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                className="mb-20 w-full mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
                 onClick={calculateRoute}
               >
                 Calculate Route
               </button>
+              {showAlert && (
+                <div onClick={handleRetry} role="alert">
+                  <div className="bg-red-500 text-white font-bold rounded-t px-4 py-2">
+                    Notification: order again
+                  </div>
+                  <div className="border border-t-0 border-red-400 rounded-b bg-red-100 px-4 py-3 text-red-700">
+                    <p>คำสั่งของคุณถูกยกเลิกโดยคนขับ</p>
+                    <button>Retry</button>
+                  </div>
+                </div>
+              )}
               {pickupLocation && dropoffLocation && (
                 <button
                   className="w-full mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"

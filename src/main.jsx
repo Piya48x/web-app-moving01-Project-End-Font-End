@@ -23,6 +23,9 @@ import DriverComponent from "./screens/Service/DriverComponent.jsx";
 import Mab from "./screens/Customer/Mab.jsx";
 import SuccessPage from "./screens/Service/SuccessPage.jsx";
 import FollowDriverComponent from "./screens/Service/FollowDriverComponent.jsx";
+import SuccessCustomer from "./screens/Customer/SuccessCustomer.jsx";
+import NavbarSV from "./screens/Service/NavbarSV.jsx";
+import NavbarCUS from "./screens/Customer/NavbarCUS.jsx";
 
 const router = createBrowserRouter([
   {
@@ -84,6 +87,18 @@ const router = createBrowserRouter([
   {
     path: "FollowDriverComponent",
     element: <FollowDriverComponent />
+  },
+  {
+    path: "SuccessCustomer",
+    element: <SuccessCustomer />
+  },
+  {
+    path: "NavbarSV",
+    element: <NavbarSV />
+  },
+  {
+    path: "NavbarCUS",
+    element: <NavbarCUS />
   },
 ]);
 

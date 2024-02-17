@@ -1,11 +1,12 @@
 /* eslint-disable no-undef */
-import  { useState, useEffect } from 'react';
-import io from 'socket.io-client';
-import 'tailwindcss/tailwind.css'; // Import Tailwind CSS
-import SuccessPage from './SuccessPage';
+import { useState, useEffect } from "react";
+import io from "socket.io-client";
+import "tailwindcss/tailwind.css"; // Import Tailwind CSS
+import SuccessPage from "./SuccessPage";
+import NavbarSV from "./NavbarSV";
 
 // Assuming your server is running at http://localhost:3000
-const socket = io('http://localhost:3000');
+const socket = io("http://localhost:3000");
 
 // Map component
 function Map({ initialCenter, pickupLocation, dropoffLocation }) {
@@ -15,10 +16,13 @@ function Map({ initialCenter, pickupLocation, dropoffLocation }) {
 
   useEffect(() => {
     const initMap = () => {
-      const newMap = new window.google.maps.Map(document.getElementById('map'), {
-        center: initialCenter,
-        zoom: 12,
-      });
+      const newMap = new window.google.maps.Map(
+        document.getElementById("map"),
+        {
+          center: initialCenter,
+          zoom: 12,
+        }
+      );
 
       const newDirectionsService = new window.google.maps.DirectionsService();
       const newDirectionsRenderer = new window.google.maps.DirectionsRenderer();
@@ -30,7 +34,7 @@ function Map({ initialCenter, pickupLocation, dropoffLocation }) {
     };
 
     if (!window.google) {
-      console.error('Google Maps API not loaded.');
+      console.error("Google Maps API not loaded.");
       return;
     }
 
@@ -46,20 +50,26 @@ function Map({ initialCenter, pickupLocation, dropoffLocation }) {
 
   useEffect(() => {
     if (directionsService && pickupLocation && dropoffLocation) {
-      const origin = new window.google.maps.LatLng(pickupLocation.lat, pickupLocation.lng);
-      const destination = new window.google.maps.LatLng(dropoffLocation.lat, dropoffLocation.lng);
+      const origin = new window.google.maps.LatLng(
+        pickupLocation.lat,
+        pickupLocation.lng
+      );
+      const destination = new window.google.maps.LatLng(
+        dropoffLocation.lat,
+        dropoffLocation.lng
+      );
 
       const request = {
         origin,
         destination,
-        travelMode: 'DRIVING',
+        travelMode: "DRIVING",
       };
 
       directionsService.route(request, (result, status) => {
-        if (status === 'OK') {
+        if (status === "OK") {
           directionsRenderer.setDirections(result);
         } else {
-          console.error('Directions request failed due to ' + status);
+          console.error("Directions request failed due to " + status);
         }
       });
     }
@@ -73,7 +83,7 @@ function DriverComponent() {
   const [driverLocation, setDriverLocation] = useState(null);
   const [order, setOrder] = useState(null);
   const [acceptingOrder, setAcceptingOrder] = useState(false); // State to track whether the driver is accepting orders or not
-  const [jobFinished, setJobFinished] = useState(false); 
+  const [jobFinished, setJobFinished] = useState(false);
 
   // Function to initialize Google Maps and set driver's location
   useEffect(() => {
@@ -83,7 +93,7 @@ function DriverComponent() {
     };
 
     const errorCallback = (error) => {
-      console.error('Error getting geolocation:', error);
+      console.error("Error getting geolocation:", error);
     };
 
     navigator.geolocation.getCurrentPosition(successCallback, errorCallback);
@@ -97,11 +107,11 @@ function DriverComponent() {
       setOrder(newOrder);
     };
 
-    socket.on('newOrder', handleNewOrder);
+    socket.on("newOrder", handleNewOrder);
 
     // Clean up socket listener
     return () => {
-      socket.off('newOrder', handleNewOrder);
+      socket.off("newOrder", handleNewOrder);
     };
   }, []);
 
@@ -110,12 +120,12 @@ function DriverComponent() {
     setAcceptingOrder(false); // Set acceptingOrder state to false when rejecting the order
 
     // ส่งข้อความผ่าน Socket.IO ไปยัง CustomerComponent
-    socket.emit('orderCancelled');
+    socket.emit("orderCancelled");
   };
 
   const handleAcceptOrder = () => {
     // ส่งข้อความผ่าน Socket.IO ไปยัง CustomerComponent
-    socket.emit('orderAccepted');
+    socket.emit("orderAccepted");
     // ทำการปิดปุ่ม Accept Order และ Reject Order
     setAcceptingOrder(true);
   };
@@ -130,16 +140,47 @@ function DriverComponent() {
     }
   };
 
-  // เพิ่มฟังก์ชัน handleFinishJob สำหรับส่งอีเวนต์เพื่อแสดงการเสร็จสิ้นงาน
-  const handleFinishJob = () => {
-    socket.emit('jobFinished');
-    setJobFinished(true); // เมื่อกดปุ่ม "Finish Job" ให้ตั้งค่า jobFinished เป็น true
-    setOrder(null); // Clear the order when rejecting it
-    setAcceptingOrder(false);
+  const handleFinishJob = async () => {
+    socket.emit("jobFinished");
+
+    const orderData = {
+      vehicle: order.vehicle,
+      bookingStatus: order.bookingStatus,
+      pickupLocation: order.pickupLocation,
+      dropoffLocation: order.dropoffLocation,
+      selectedDateTime: order.selectedDateTime,
+      totalDistance: order.totalDistance,
+      totalCost: order.totalCost,
+    };
+
+    try {
+      const response = await fetch('http://localhost:3000/api/orders', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(orderData)
+      });
+
+      if (response.ok) {
+        console.log("Order saved successfully");
+        setJobFinished(true);
+        setOrder(null);
+        setAcceptingOrder(false);
+      } else {
+        console.error("Failed to save order");
+      }
+    } catch (error) {
+      console.error("Error saving order:", error);
+    }
   };
 
+
+
   const handleConfirmFinishJob = () => {
-    const isConfirmed = window.confirm("Are you sure you want to finish this job?");
+    const isConfirmed = window.confirm(
+      "Are you sure you want to finish this job?"
+    );
     if (isConfirmed) {
       handleFinishJob(); // เรียกใช้ handleFinishJob หากผู้ใช้ยืนยันการเสร็จสิ้นงาน
     }
@@ -150,7 +191,9 @@ function DriverComponent() {
   };
 
   return (
-    <div className="container mx-auto p-4">
+    <>
+  <NavbarSV/>
+        <div className="container mx-auto p-4">
       {/* Display SuccessPage if job is finished */}
       {jobFinished ? (
         <SuccessPage onBackToDashboard={handleBackToDashboard} />
@@ -163,7 +206,7 @@ function DriverComponent() {
           />
           {driverLocation && (
             <p className="text-center mt-4">
-              Driver's Location: Latitude {driverLocation.lat}, Longitude{' '}
+              Driver's Location: Latitude {driverLocation.lat}, Longitude{" "}
               {driverLocation.lng}
             </p>
           )}
@@ -172,27 +215,43 @@ function DriverComponent() {
               <h2 className="text-2xl font-bold mb-4">Order Details</h2>
               <p>Vehicle: {order.vehicle}</p>
               <p>Booking Status: {order.bookingStatus}</p>
-              {order.pickupLocation && <p>Pickup Location: {order.pickupLocation.name}</p>}
-              {order.dropoffLocation && <p>Drop-off Location: {order.dropoffLocation.name}</p>}
+              {order.pickupLocation && (
+                <p>Pickup Location: {order.pickupLocation.name}</p>
+              )}
+              {order.dropoffLocation && (
+                <p>Drop-off Location: {order.dropoffLocation.name}</p>
+              )}
               <p>Selected DateTime: {order.selectedDateTime}</p>
               <p>Total Distance: {order.totalDistance} km</p>
               <p>Total Cost: {order.totalCost} Baht</p>
               <div className="flex justify-center mt-4">
                 {acceptingOrder ? (
                   <>
-                    <button onClick={handleViewOnGoogleMaps} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-4">
+                    <button
+                      onClick={handleViewOnGoogleMaps}
+                      className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-4"
+                    >
                       View on Google Maps
                     </button>
-                    <button onClick={handleConfirmFinishJob} className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
-  Finish Job
-</button>
+                    <button
+                      onClick={handleConfirmFinishJob}
+                      className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
+                    >
+                      Finish Job
+                    </button>
                   </>
                 ) : (
                   <>
-                    <button onClick={handleAcceptOrder} className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mr-4">
+                    <button
+                      onClick={handleAcceptOrder}
+                      className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mr-4"
+                    >
                       Accept Order
                     </button>
-                    <button onClick={handleRejectOrder} className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
+                    <button
+                      onClick={handleRejectOrder}
+                      className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+                    >
                       Reject Order
                     </button>
                   </>
@@ -206,6 +265,8 @@ function DriverComponent() {
         </div>
       )}
     </div>
+    </>
+  
   );
 }
 
