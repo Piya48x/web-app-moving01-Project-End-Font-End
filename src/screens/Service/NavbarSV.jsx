@@ -1,6 +1,39 @@
-
+import axios from "axios";
 
 function NavbarSV() {
+
+  const handleLogout = async () => {
+    try {
+      // Get the token from local storage or wherever it's stored
+      const token = localStorage.getItem("token");
+
+      // Send the token along with the request
+      const response = await axios.post(
+        "http://localhost:3000/api/logout",
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+
+      if (response.status === 200) {
+        console.log("Logout successful");
+        // Clear the token from local storage
+        localStorage.removeItem("token");
+        // Redirect the user to the login page
+        window.location.href = '/login';
+      } else {
+        console.error("Failed to logout:", response.statusText);
+        // Handle failed logout
+      }
+    } catch (error) {
+      console.error("Error during logout:", error.message);
+      // Handle error during logout
+    }
+  };
+
   return (
     <div className="navbar bg-base-100">
     <div className="navbar-start">
@@ -9,14 +42,15 @@ function NavbarSV() {
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h7" /></svg>
         </div>
         <ul tabIndex={0} className="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
-          <li><a>Homepage</a></li>
-          <li><a>Portfolio</a></li>
-          <li><a>About</a></li>
-        </ul>
+            <li><a>Home</a></li>
+            <li><a>Profile</a></li>
+            <li><a>Booking</a></li>
+            <li  onClick={handleLogout}><a>Log out</a></li>
+          </ul>
       </div>
     </div>
     <div className="navbar-center">
-      <a className="btn btn-ghost text-xl">daisyUI</a>
+      <a className="btn btn-ghost text-xl">Moving Items</a>
     </div>
     <div className="navbar-end">
       <button className="btn btn-ghost btn-circle">

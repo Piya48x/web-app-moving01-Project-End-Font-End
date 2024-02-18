@@ -6,6 +6,7 @@ import io from "socket.io-client";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import NavbarCUS from "./NavbarCUS";
+import FollowDriverComponent from "./FollowDriverComponent";
 
 const socket = io("http://localhost:3000");
 //const googleMapsApiKey = "AIzaSyAp5OleyH2H46AGS4kFoPvVu2SDZqCz5nc"; // Replace with your API key
@@ -28,7 +29,9 @@ function CustomerComponent() {
   const [directionsRenderer, setDirectionsRenderer] = useState(null);
   const [currentUserInfo, setCurrentUserInfo] = useState(null);
   const [showAlert, setShowAlert] = useState(false);
-  const [showAlert1, setShowAlert1] = useState(false);
+  const [orders, setOrders] = useState([]);
+  
+
   const navigate = useNavigate();
 
   // ใน CustomerComponent
@@ -52,7 +55,10 @@ function CustomerComponent() {
     const handleOrderCancelled1 = () => {
       // แสดงข้อความเมื่อมีการยกเลิกการสั่งซื้อ
       alert("คนขับได้ตอบรับ Order เรียบร้อยแล้ว.");
-      navigate("/FollowDriverComponent");
+      setTimeout(()=>{
+        //navigate("/FollowDriverComponent");
+      }, 2000)
+      
     };
 
     // ตั้งค่าการฟังเหตุการณ์การยกเลิกการสั่งซื้อ
@@ -273,6 +279,46 @@ function CustomerComponent() {
     }
   };
 
+  // const handleSubmit = async () => {
+  //   // Create order data
+  //   const orderData = {
+  //     vehicle: selectedVehicle,
+  //     bookingStatus:
+  //       selectedBookingStatus === "Scheduled"
+  //         ? moment(selectedDateTime).locale("th").format("YYYY-MM-DD[T]HH:mm")
+  //         : selectedBookingStatus,
+  //     pickupLocation,
+  //     dropoffLocation,
+  //     selectedDateTime,
+  //     totalDistance,
+  //     totalCost,
+  //   };
+
+  //   try {
+  //     // Send the order data to the server via Socket.IO
+  //     socket.emit("orderReceived", orderData);
+      
+
+  //     console.log("Order data sent:", orderData);
+  //     alert("โปรดรอสักครู่ กำลังค้นหาคนขับ...");
+
+  //     // Reset state values
+  //     setSelectedVehicle("");
+  //     setSelectedBookingStatus("");
+  //     setPickupLocationInput("");
+  //     setDropoffLocationInput("");
+  //     setPickupLocation(null);
+  //     setDropoffLocation(null);
+  //     setSelectedDateTime(null);
+  //     setTotalDistance(0); // Reset total distance
+  //     setTotalCost(0); // Reset total cost
+  //     setShowOrderConfirmation(false); // Hide order confirmation
+  //   } catch (error) {
+  //     console.error("Error sending order data:", error.message);
+  //     alert("Error sending order data. Please try again later.");
+  //   }
+  // };
+
   const handleSubmit = async () => {
     // Create order data
     const orderData = {
@@ -288,27 +334,37 @@ function CustomerComponent() {
       totalCost,
     };
 
+
     try {
-      // Send the order data to the server via Socket.IO
-      socket.emit("orderReceived", orderData);
+      const response = await axios.post(
+        "http://localhost:3000/api/order",
+        orderData
+      );
+      if (response.status === 200) {
+        console.log("Order placed successfully");
+        alert("Order placed successfully");
 
-      console.log("Order data sent:", orderData);
-      alert("Order data sent successfully");
+        // Send 'orderReceived' event to server via Socket.IO
+        socket.emit("orderReceived", orderData);
 
-      // Reset state values
-      setSelectedVehicle("");
-      setSelectedBookingStatus("");
-      setPickupLocationInput("");
-      setDropoffLocationInput("");
-      setPickupLocation(null);
-      setDropoffLocation(null);
-      setSelectedDateTime(null);
-      setTotalDistance(0); // Reset total distance
+        // Reset state values
+        setSelectedVehicle("");
+        setSelectedBookingStatus("");
+        setPickupLocationInput("");
+        setDropoffLocationInput("");
+        setPickupLocation(null);
+        setDropoffLocation(null);
+        setSelectedDateTime(null);
+        setTotalDistance(0); // Reset total distance
       setTotalCost(0); // Reset total cost
       setShowOrderConfirmation(false); // Hide order confirmation
+      } else {
+        console.error("Failed to place order:", response.statusText);
+        alert("Failed to place order. Please try again later.");
+      }
     } catch (error) {
-      console.error("Error sending order data:", error.message);
-      alert("Error sending order data. Please try again later.");
+      console.error("Error placing order:", error.message);
+      alert("Error placing order. Please try again later.");
     }
   };
 
@@ -329,6 +385,7 @@ function CustomerComponent() {
   return (
     <>
       <NavbarCUS />
+      
       <div className="flex flex-col h-screen">
         <div className="flex flex-1">
           {/* Left Panel */}
@@ -559,6 +616,18 @@ function CustomerComponent() {
           )}
         </div>
       </div>
+      
+      <div style={{borderRadius: '50px'}} className="fixed bottom-0 left-0 w-full bg-blue-100 text-black p-4 transition-transform duration-300 transform scale-100 hover:scale-105 hover:-translate-y-2 overflow-auto">
+  <div className="container mx-auto">
+    <FollowDriverComponent />
+  </div>
+</div>
+
+
+
+
+
+    
     </>
   );
 }

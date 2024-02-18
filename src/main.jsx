@@ -22,10 +22,13 @@ import CustomerComponent from "./screens/Customer/CustomerComponent.jsx";
 import DriverComponent from "./screens/Service/DriverComponent.jsx";
 import Mab from "./screens/Customer/Mab.jsx";
 import SuccessPage from "./screens/Service/SuccessPage.jsx";
-import FollowDriverComponent from "./screens/Service/FollowDriverComponent.jsx";
+
 import SuccessCustomer from "./screens/Customer/SuccessCustomer.jsx";
 import NavbarSV from "./screens/Service/NavbarSV.jsx";
 import NavbarCUS from "./screens/Customer/NavbarCUS.jsx";
+import FollowDriverComponent from "./screens/Customer/FollowDriverComponent.jsx";
+import FollowCustomer from "./screens/Service/FollowCustomer.jsx";
+import Booking from "./screens/Customer/Booking.jsx";
 
 const router = createBrowserRouter([
   {
@@ -99,6 +102,14 @@ const router = createBrowserRouter([
   {
     path: "NavbarCUS",
     element: <NavbarCUS />
+  },
+  {
+    path: "FollowCustomer",
+    element: <FollowCustomer />
+  },
+  {
+    path: "Booking",
+    element: <Booking />
   },
 ]);
 

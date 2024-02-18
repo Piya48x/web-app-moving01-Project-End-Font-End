@@ -1,9 +1,13 @@
-/* eslint-disable no-undef */
 import { useState, useEffect } from "react";
 import io from "socket.io-client";
 import "tailwindcss/tailwind.css"; // Import Tailwind CSS
 import SuccessPage from "./SuccessPage";
 import NavbarSV from "./NavbarSV";
+import { useNavigate } from "react-router-dom";
+import FollowCustomer from "./FollowCustomer";
+import FollowDriverComponent from "../Customer/FollowDriverComponent";
+
+
 
 // Assuming your server is running at http://localhost:3000
 const socket = io("http://localhost:3000");
@@ -84,6 +88,8 @@ function DriverComponent() {
   const [order, setOrder] = useState(null);
   const [acceptingOrder, setAcceptingOrder] = useState(false); // State to track whether the driver is accepting orders or not
   const [jobFinished, setJobFinished] = useState(false);
+  const [chat, setChat] = useState(false); // State to track whether the chat with customer is started or not
+  const navigate = useNavigate();
 
   // Function to initialize Google Maps and set driver's location
   useEffect(() => {
@@ -126,6 +132,7 @@ function DriverComponent() {
   const handleAcceptOrder = () => {
     // ส่งข้อความผ่าน Socket.IO ไปยัง CustomerComponent
     socket.emit("orderAccepted");
+    socket.emit("orderReceived2", order);
     // ทำการปิดปุ่ม Accept Order และ Reject Order
     setAcceptingOrder(true);
   };
@@ -167,6 +174,7 @@ function DriverComponent() {
         setJobFinished(true);
         setOrder(null);
         setAcceptingOrder(false);
+        setChat(false)
       } else {
         console.error("Failed to save order");
       }
@@ -174,8 +182,6 @@ function DriverComponent() {
       console.error("Error saving order:", error);
     }
   };
-
-
 
   const handleConfirmFinishJob = () => {
     const isConfirmed = window.confirm(
@@ -192,81 +198,90 @@ function DriverComponent() {
 
   return (
     <>
-  <NavbarSV/>
-        <div className="container mx-auto p-4">
-      {/* Display SuccessPage if job is finished */}
-      {jobFinished ? (
-        <SuccessPage onBackToDashboard={handleBackToDashboard} />
-      ) : (
-        <div>
-          <Map
-            initialCenter={driverLocation || { lat: 0, lng: 0 }}
-            pickupLocation={order?.pickupLocation}
-            dropoffLocation={order?.dropoffLocation}
-          />
-          {driverLocation && (
-            <p className="text-center mt-4">
-              Driver's Location: Latitude {driverLocation.lat}, Longitude{" "}
-              {driverLocation.lng}
-            </p>
-          )}
-          {order && (
-            <div className="mt-8">
-              <h2 className="text-2xl font-bold mb-4">Order Details</h2>
-              <p>Vehicle: {order.vehicle}</p>
-              <p>Booking Status: {order.bookingStatus}</p>
-              {order.pickupLocation && (
-                <p>Pickup Location: {order.pickupLocation.name}</p>
-              )}
-              {order.dropoffLocation && (
-                <p>Drop-off Location: {order.dropoffLocation.name}</p>
-              )}
-              <p>Selected DateTime: {order.selectedDateTime}</p>
-              <p>Total Distance: {order.totalDistance} km</p>
-              <p>Total Cost: {order.totalCost} Baht</p>
-              <div className="flex justify-center mt-4">
-                {acceptingOrder ? (
-                  <>
-                    <button
-                      onClick={handleViewOnGoogleMaps}
-                      className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-4"
-                    >
-                      View on Google Maps
-                    </button>
-                    <button
-                      onClick={handleConfirmFinishJob}
-                      className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
-                    >
-                      Finish Job
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <button
-                      onClick={handleAcceptOrder}
-                      className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mr-4"
-                    >
-                      Accept Order
-                    </button>
-                    <button
-                      onClick={handleRejectOrder}
-                      className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
-                    >
-                      Reject Order
-                    </button>
-                  </>
+      <NavbarSV/>
+      {chat && <FollowCustomer />}
+      <hr />
+      <div className="container mx-auto p-4">
+        {/* Display SuccessPage if job is finished */}
+        {jobFinished ? (
+          <SuccessPage onBackToDashboard={handleBackToDashboard} />
+        ) : (
+          <div>
+            <Map
+              initialCenter={driverLocation || { lat: 0, lng: 0 }}
+              pickupLocation={order?.pickupLocation}
+              dropoffLocation={order?.dropoffLocation}
+            />
+            {driverLocation && (
+              <p className="text-center mt-4">
+                Driver's Location: Latitude {driverLocation.lat}, Longitude{" "}
+                {driverLocation.lng}
+              </p>
+            )}
+            {order && (
+              <div className="mt-8">
+                <h2 className="text-2xl font-bold mb-4">Order Details</h2>
+                <p>Vehicle: {order.vehicle}</p>
+                <p>Booking Status: {order.bookingStatus}</p>
+                {order.pickupLocation && (
+                  <p>Pickup Location: {order.pickupLocation.name}</p>
                 )}
+                {order.dropoffLocation && (
+                  <p>Drop-off Location: {order.dropoffLocation.name}</p>
+                )}
+                <p>Selected DateTime: {order.selectedDateTime}</p>
+                <p>Total Distance: {order.totalDistance} km</p>
+                <p>Total Cost: {order.totalCost} Baht</p>
+                <div className="flex justify-center mt-4">
+                  {acceptingOrder ? (
+                    <>
+                      <button
+                        onClick={handleViewOnGoogleMaps}
+                        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-4"
+                      >
+                        View on Google Maps
+                      </button>
+                      <button
+                        onClick={handleConfirmFinishJob}
+                        className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
+                      >
+                        Finish Job
+                      </button>
+                      <button
+                        className="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded ml-4"
+                        onClick={() => setChat(true)}
+                      >
+                        Start Chat with Customer
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        onClick={handleAcceptOrder}
+                        className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mr-4"
+                      >
+                        Accept Order
+                      </button>
+                      <button
+                        onClick={handleRejectOrder}
+                        className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+                      >
+                        Reject Order
+                      </button>
+                    </>
+                  )}
+                </div>
               </div>
-            </div>
-          )}
-          {!acceptingOrder && !order && (
-            <p className="text-center mt-8">Currently not accepting orders.</p>
-          )}
-        </div>
-      )}
-    </div>
+            )}
+            {!acceptingOrder && !order && (
+              <p className="text-center mt-8">Currently not accepting orders.</p>
+            )}
+          </div>
+        )}
+      </div>
+      <hr />
+      
     </>
-  
   );
 }
 
