@@ -57,7 +57,7 @@ function NavbarCUS() {
           <ul tabIndex={0} className="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
             <li><Link to="/CustomerComponent">Home</Link></li>
             <li><a>Profile</a></li>
-            <li><Link to="/Booking">Booking</Link></li>
+            <li><Link to="/Booking">History Booking</Link></li>
             <li  onClick={handleLogout}><a>Log out</a></li>
           </ul>
         </div>

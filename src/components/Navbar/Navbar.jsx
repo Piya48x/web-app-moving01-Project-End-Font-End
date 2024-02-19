@@ -17,11 +17,11 @@ const navbarStyle = {
 function Navbar() {
   return (
     <div  style={navbarStyle}>
-      <div className="flex-1">
-        <Link to='/' className="btn btn-ghost text-xl" style={{ fontWeight: "bold" }}>
-          Moving For Items
-        </Link>
-      </div>
+       <div className="flex-1">
+  <Link to='/' className="btn btn-ghost text-xl" style={{ fontWeight: "bold" }}>
+    <img src="https://www.rmu.ac.th/images/logo_rmu_web.png" alt="Logo" className="h-14 mr-2" /> 
+  </Link>
+</div>
       <div className="flex-none">
         <ul className="menu menu-horizontal px-1">
           {/* <li>

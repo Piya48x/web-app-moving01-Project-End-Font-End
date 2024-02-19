@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import NavbarCUS from './NavbarCUS';
+import NavbarSV from './NavbarSV';
 
-function Booking() {
+
+function BookingSV() {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -11,7 +12,7 @@ function Booking() {
         // Fetch orders when the component mounts
         const fetchOrders = async () => {
             try {
-                const response = await axios.get('http://localhost:3000/api/bookings');
+                const response = await axios.get('http://localhost:3000/api/orders');
                 setOrders(response.data);
                 setLoading(false);
             } catch (error) {
@@ -46,9 +47,9 @@ function Booking() {
 
     return (
         <>
-            <NavbarCUS />
+            <NavbarSV />
             <div className="container mx-auto px-4 py-8 text-black">
-                <h1 className="text-2xl font-bold mb-4">Booking History</h1>
+                <h1 className="text-2xl font-bold mb-4">History Order</h1>
                 <div className="overflow-x-auto">
                     <table className="w-full table-auto">
                         <thead>
@@ -79,14 +80,9 @@ function Booking() {
                         </tbody>
                     </table>
                 </div>
-                <div className="mt-4">
-                    <button onClick={handleDeleteLatest} className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
-                        Delete Latest Booking
-                    </button>
-                </div>
             </div>
         </>
     );
 }
 
-export default Booking;
+export default BookingSV;

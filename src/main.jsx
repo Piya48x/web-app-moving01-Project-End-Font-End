@@ -29,6 +29,7 @@ import NavbarCUS from "./screens/Customer/NavbarCUS.jsx";
 import FollowDriverComponent from "./screens/Customer/FollowDriverComponent.jsx";
 import FollowCustomer from "./screens/Service/FollowCustomer.jsx";
 import Booking from "./screens/Customer/Booking.jsx";
+import BookingSV from "./screens/Service/BookingSV.jsx";
 
 const router = createBrowserRouter([
   {
@@ -110,6 +111,10 @@ const router = createBrowserRouter([
   {
     path: "Booking",
     element: <Booking />
+  },
+  {
+    path: "BookingSV",
+    element: <BookingSV />
   },
 ]);
 

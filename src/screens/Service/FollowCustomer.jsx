@@ -61,6 +61,7 @@ function FollowCustomer() {
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           className="flex-grow border-gray-300 rounded-lg p-2"
+          placeholder="Type your message..."
         />
         <button
           onClick={sendMessage}

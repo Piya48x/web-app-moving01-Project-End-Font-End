@@ -30,7 +30,7 @@ function CustomerComponent() {
   const [currentUserInfo, setCurrentUserInfo] = useState(null);
   const [showAlert, setShowAlert] = useState(false);
   const [orders, setOrders] = useState([]);
-  
+
 
   const navigate = useNavigate();
 
@@ -55,9 +55,9 @@ function CustomerComponent() {
     const handleOrderCancelled1 = () => {
       // แสดงข้อความเมื่อมีการยกเลิกการสั่งซื้อ
       alert("คนขับได้ตอบรับ Order เรียบร้อยแล้ว.");
-      setTimeout(()=>{
-        //navigate("/FollowDriverComponent");
-      }, 2000)
+      // setTimeout(()=>{
+      //   navigate("/FollowDriverComponent");
+      // }, 2000)
       
     };
 
@@ -81,6 +81,18 @@ function CustomerComponent() {
     // ทำความสะอาด listener เมื่อ unmount
     return () => {
       socket.off("jobFinished", handleOrderCancelled2);
+    };
+  }, []);
+
+  useEffect(() => {
+    // Listen for currentUserInfo event from the server
+    socket.on("currentUserInfo", (userInfo) => {
+      setCurrentUserInfo(userInfo);
+    });
+
+    return () => {
+      // Clean up socket listener when component unmounts
+      socket.off("currentUserInfo");
     };
   }, []);
 
@@ -337,7 +349,7 @@ function CustomerComponent() {
 
     try {
       const response = await axios.post(
-        "http://localhost:3000/api/order",
+        "http://localhost:3000/api/booking",
         orderData
       );
       if (response.status === 200) {
@@ -386,6 +398,7 @@ function CustomerComponent() {
     <>
       <NavbarCUS />
       
+      
       <div className="flex flex-col h-screen">
         <div className="flex flex-1">
           {/* Left Panel */}
@@ -399,8 +412,7 @@ function CustomerComponent() {
                 <div>
                   <p>User: {currentUserInfo.user}</p>
                   <p>Email: {currentUserInfo.email}</p>
-                  <p>License Plate: {currentUserInfo.licensePlate}</p>
-                  <p>Phone Number: {currentUserInfo.phoneNumber}</p>
+                 
                 </div>
               )}
             </div>
@@ -552,7 +564,7 @@ function CustomerComponent() {
                   <div className="bg-red-500 text-white font-bold rounded-t px-4 py-2">
                     Notification: order again
                   </div>
-                  <div className="border border-t-0 border-red-400 rounded-b bg-red-100 px-4 py-3 text-red-700">
+                  <div  className="border border-t-0 border-red-400 rounded-b bg-red-100 px-4 py-3 text-red-700">
                     <p>คำสั่งของคุณถูกยกเลิกโดยคนขับ</p>
                     <button>Retry</button>
                   </div>
@@ -569,11 +581,14 @@ function CustomerComponent() {
             </div>
           </div>
           {/* Map */}
+          
           <div
             className="w-full md:w-3/4"
             id="map"
             style={{ height: "100vh" }}
           ></div>
+          <FollowDriverComponent className="absolute top-0 left-0 z-50 w-full border-red-500 rounded-full" />
+
           {/* Order confirmation */}
           {showOrderConfirmation && (
             <div className="fixed bottom-0 left-0 bg-white p-4 w-full">
@@ -617,17 +632,14 @@ function CustomerComponent() {
         </div>
       </div>
       
-      <div style={{borderRadius: '50px'}} className="fixed bottom-0 left-0 w-full bg-blue-100 text-black p-4 transition-transform duration-300 transform scale-100 hover:scale-105 hover:-translate-y-2 overflow-auto">
-  <div className="container mx-auto">
-    <FollowDriverComponent />
-  </div>
-</div>
-
-
-
-
-
     
+      
+
+
+
+
+
+      
     </>
   );
 }

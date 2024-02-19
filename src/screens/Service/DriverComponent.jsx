@@ -5,7 +5,6 @@ import SuccessPage from "./SuccessPage";
 import NavbarSV from "./NavbarSV";
 import { useNavigate } from "react-router-dom";
 import FollowCustomer from "./FollowCustomer";
-import FollowDriverComponent from "../Customer/FollowDriverComponent";
 
 
 
@@ -199,7 +198,7 @@ function DriverComponent() {
   return (
     <>
       <NavbarSV/>
-      {chat && <FollowCustomer />}
+     
       <hr />
       <div className="container mx-auto p-4">
         {/* Display SuccessPage if job is finished */}
@@ -218,6 +217,7 @@ function DriverComponent() {
                 {driverLocation.lng}
               </p>
             )}
+            <hr />
             {order && (
               <div className="mt-8">
                 <h2 className="text-2xl font-bold mb-4">Order Details</h2>
@@ -234,26 +234,35 @@ function DriverComponent() {
                 <p>Total Cost: {order.totalCost} Baht</p>
                 <div className="flex justify-center mt-4">
                   {acceptingOrder ? (
-                    <>
-                      <button
-                        onClick={handleViewOnGoogleMaps}
-                        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-4"
-                      >
-                        View on Google Maps
-                      </button>
-                      <button
-                        onClick={handleConfirmFinishJob}
-                        className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
-                      >
-                        Finish Job
-                      </button>
-                      <button
-                        className="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded ml-4"
-                        onClick={() => setChat(true)}
-                      >
-                        Start Chat with Customer
-                      </button>
-                    </>
+                 <>
+                 
+                 <div>
+                 <div className="mt-20 flex relative">
+                   <div style={{marginLeft: '1px', marginBottom: '50px'}} className=" bg-gray-200 p-4 rounded-lg max-w-md">
+                     <FollowCustomer />
+                   </div>
+                 </div>
+                   <div className="flex items-center justify-center flex-wrap">
+                     <button
+                       onClick={handleViewOnGoogleMaps}
+                       className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-4"
+                     >
+                       View on Google Maps
+                     </button>
+                     <button
+                       onClick={handleConfirmFinishJob}
+                       className="bg-green-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
+                     >
+                       Finish Job
+                     </button>
+                   </div>
+                 </div>
+                 
+               </>
+               
+                  
+
+                  
                   ) : (
                     <>
                       <button
@@ -274,7 +283,7 @@ function DriverComponent() {
               </div>
             )}
             {!acceptingOrder && !order && (
-              <p className="text-center mt-8">Currently not accepting orders.</p>
+              <p className="text-center mt-8">Searching for orders...</p>
             )}
           </div>
         )}
