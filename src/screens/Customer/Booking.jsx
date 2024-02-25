@@ -8,15 +8,15 @@ function Booking() {
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        // Fetch orders when the component mounts
+        // เรียกข้อมูลการจองเมื่อคอมโพเนนต์ถูกโหลด
         const fetchOrders = async () => {
             try {
                 const response = await axios.get('http://localhost:3000/api/bookings');
                 setOrders(response.data);
                 setLoading(false);
             } catch (error) {
-                console.error('Error fetching orders:', error);
-                setError('Error fetching orders. Please try again later.');
+                console.error('เกิดข้อผิดพลาดในการเรียกข้อมูลการจอง:', error);
+                setError('เกิดข้อผิดพลาดในการเรียกข้อมูลการจอง โปรดลองอีกครั้งในภายหลัง');
                 setLoading(false);
             }
         };
@@ -26,18 +26,18 @@ function Booking() {
 
     const handleDeleteLatest = async () => {
         try {
-            const latestOrder = orders[orders.length - 1]; // Get the latest order
-            const orderId = latestOrder.id; // Get the ID of the latest order
+            const latestOrder = orders[orders.length - 1]; // รับข้อมูลการจองล่าสุด
+            const orderId = latestOrder.id; // รับ ID ของการจองล่าสุด
             await axios.delete(`http://localhost:3000/api/booking/${orderId}`);
-            // Remove the latest order from the local state
+            // ลบข้อมูลการจองล่าสุดออกจาก state ท้องถิ่น
             setOrders(orders.filter(order => order.id !== orderId));
         } catch (error) {
-            console.error('Error deleting latest order:', error);
+            console.error('เกิดข้อผิดพลาดในการลบการจองล่าสุด:', error);
         }
     };
 
     if (loading) {
-        return <div className="flex justify-center items-center h-screen">Loading...</div>;
+        return <div className="flex justify-center items-center h-screen">กำลังโหลด...</div>;
     }
 
     if (error) {
@@ -48,19 +48,19 @@ function Booking() {
         <>
             <NavbarCUS />
             <div className="container mx-auto px-4 py-8 text-black">
-                <h1 className="text-2xl font-bold mb-4">Booking History</h1>
+                <h1 className="text-2xl font-bold mb-4">ประวัติการจอง</h1>
                 <div className="overflow-x-auto">
                     <table className="w-full table-auto">
                         <thead>
                             <tr>
-                                <th className="px-4 py-2">Order ID</th>
-                                <th className="px-4 py-2">Vehicle</th>
-                                <th className="px-4 py-2">Status</th>
-                                <th className="px-4 py-2">Pickup Location</th>
-                                <th className="px-4 py-2">Dropoff Location</th>
-                                <th className="px-4 py-2">Date & Time</th>
-                                <th className="px-4 py-2">Total Distance (km)</th>
-                                <th className="px-4 py-2">Total Cost (Baht)</th>
+                                <th className="px-4 py-2">รหัสการจอง</th>
+                                <th className="px-4 py-2">ยานพาหนะ</th>
+                                <th className="px-4 py-2">สถานะ</th>
+                                <th className="px-4 py-2">สถานที่รับ</th>
+                                <th className="px-4 py-2">สถานที่ส่ง</th>
+                                <th className="px-4 py-2">วันที่และเวลา</th>
+                                <th className="px-4 py-2">ระยะทางทั้งหมด (กม.)</th>
+                                <th className="px-4 py-2">ค่าใช้จ่ายทั้งหมด (บาท)</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -81,7 +81,7 @@ function Booking() {
                 </div>
                 <div className="mt-4">
                     <button onClick={handleDeleteLatest} className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
-                        Delete Latest Booking
+                        ลบการจองล่าสุด
                     </button>
                 </div>
             </div>

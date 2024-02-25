@@ -40,35 +40,35 @@ function Play_select() {
     <div className="flex justify-center items-center h-screen bg-gray-100">
       <div className="grid grid-cols-2 gap-4">
         <h2 className="text-3xl font-semibold mb-8 col-span-2 text-center">
-          Choose your status
+          เลือกสถานะของคุณ
         </h2>
-        {/* Customer Box */}
+        {/* กล่องสำหรับลูกค้า */}
         <div className="bg-blue-500 text-white p-8 rounded-lg shadow-md flex flex-col justify-center items-center">
-          <h2 className="text-2xl font-semibold mb-4">Customer</h2>
+          <h2 className="text-2xl font-semibold mb-4">ลูกค้า</h2>
           <Link
             to="/CustomerComponent"
             className="text-lg bg-white text-blue-500 px-4 py-2 rounded-lg hover:bg-blue-100"
           >
-            Go to Customer
+            ไปยังหน้าลูกค้า
           </Link>
         </div>
-        {/* Driver Box */}
+        {/* กล่องสำหรับพนักงานขับรถ */}
         <div className="bg-blue-500 text-white p-8 rounded-lg shadow-md flex flex-col justify-center items-center">
-          <h2 className="text-2xl font-semibold mb-4">Driver</h2>
+          <h2 className="text-2xl font-semibold mb-4">พนักงานขับรถ</h2>
           <Link
             to="/DriverComponent"
             className="text-lg bg-white text-blue-500 px-4 py-2 rounded-lg hover:bg-blue-100"
           >
-            Go to Driver
+            ไปยังหน้าพนักงานขับรถ
           </Link>
         </div>
         {/* <div className="bg-red-500 text-white p-8 rounded-lg shadow-md flex flex-col justify-center items-center">
-          <h2 className="text-2xl font-semibold mb-4">Logout</h2>
+          <h2 className="text-2xl font-semibold mb-4">ออกจากระบบ</h2>
           <button
             onClick={handleLogout}
             className="text-lg bg-white text-red-500 px-4 py-2 rounded-lg hover:bg-red-100"
           >
-            Logout
+            ออกจากระบบ
           </button>
         </div> */}
       </div>

@@ -2,22 +2,21 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import NavbarSV from './NavbarSV';
 
-
 function BookingSV() {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        // Fetch orders when the component mounts
+        // เรียกข้อมูลการจองเมื่อคอมโพเนนต์ถูกโหลด
         const fetchOrders = async () => {
             try {
                 const response = await axios.get('http://localhost:3000/api/orders');
                 setOrders(response.data);
                 setLoading(false);
             } catch (error) {
-                console.error('Error fetching orders:', error);
-                setError('Error fetching orders. Please try again later.');
+                console.error('เกิดข้อผิดพลาดในการเรียกข้อมูลการจอง:', error);
+                setError('เกิดข้อผิดพลาดในการเรียกข้อมูลการจอง โปรดลองอีกครั้งในภายหลัง');
                 setLoading(false);
             }
         };
@@ -25,20 +24,24 @@ function BookingSV() {
         fetchOrders();
     }, []);
 
-    const handleDeleteLatest = async () => {
+    const handleDeleteOrder = async (orderId) => {
         try {
-            const latestOrder = orders[orders.length - 1]; // Get the latest order
-            const orderId = latestOrder.id; // Get the ID of the latest order
-            await axios.delete(`http://localhost:3000/api/booking/${orderId}`);
-            // Remove the latest order from the local state
-            setOrders(orders.filter(order => order.id !== orderId));
+            await axios.delete(`http://localhost:3000/api/order/${orderId}`);
+            // ลบคำสั่งที่ถูกลบออกจากสถานะ
+            setOrders(orders.filter((order) => order.id !== orderId));
         } catch (error) {
-            console.error('Error deleting latest order:', error);
+            console.error('เกิดข้อผิดพลาดในการลบคำสั่ง:', error);
         }
     };
 
+    const handleDeleteLatestOrder = async () => {
+        if (orders.length === 0) return;
+        const latestOrderId = orders[0].id; // ถ้าใช้กำหนดให้คำสั่งที่ล่าสุดเป็นคำสั่งแรก
+        handleDeleteOrder(latestOrderId);
+    };
+
     if (loading) {
-        return <div className="flex justify-center items-center h-screen">Loading...</div>;
+        return <div className="flex justify-center items-center h-screen">กำลังโหลด...</div>;
     }
 
     if (error) {
@@ -49,19 +52,26 @@ function BookingSV() {
         <>
             <NavbarSV />
             <div className="container mx-auto px-4 py-8 text-black">
-                <h1 className="text-2xl font-bold mb-4">History Order</h1>
+                <h1 className="text-2xl font-bold mb-4">ประวัติการจอง</h1>
+                <button
+                    onClick={handleDeleteLatestOrder}
+                    className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded mb-4"
+                >
+                    ลบคำสั่งล่าสุด
+                </button>
                 <div className="overflow-x-auto">
                     <table className="w-full table-auto">
                         <thead>
                             <tr>
-                                <th className="px-4 py-2">Order ID</th>
-                                <th className="px-4 py-2">Vehicle</th>
-                                <th className="px-4 py-2">Status</th>
-                                <th className="px-4 py-2">Pickup Location</th>
-                                <th className="px-4 py-2">Dropoff Location</th>
-                                <th className="px-4 py-2">Date & Time</th>
-                                <th className="px-4 py-2">Total Distance (km)</th>
-                                <th className="px-4 py-2">Total Cost (Baht)</th>
+                                <th className="px-4 py-2">รหัสการจอง</th>
+                                <th className="px-4 py-2">ประเภทรถ</th>
+                                <th className="px-4 py-2">สถานะ</th>
+                                <th className="px-4 py-2">สถานที่รับ</th>
+                                <th className="px-4 py-2">สถานที่ส่ง</th>
+                                <th className="px-4 py-2">วันที่และเวลา</th>
+                                <th className="px-4 py-2">ระยะทางทั้งหมด (กม.)</th>
+                                <th className="px-4 py-2">ค่าใช้จ่ายทั้งหมด (฿)</th>
+                                <th className="px-4 py-2">การดำเนินการ</th> {/* เพิ่มหัวตารางนี้ */}
                             </tr>
                         </thead>
                         <tbody>
@@ -75,6 +85,14 @@ function BookingSV() {
                                     <td className="px-4 py-2">{order.selectedDateTime}</td>
                                     <td className="px-4 py-2">{order.totalDistance}</td>
                                     <td className="px-4 py-2">{order.totalCost}</td>
+                                    <td className="px-4 py-2">
+                                        <button
+                                            onClick={() => handleDeleteOrder(order.id)}
+                                            className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+                                        >
+                                            ลบ
+                                        </button>
+                                    </td> {/* เพิ่มเซลล์ในตารางนี้ */}
                                 </tr>
                             ))}
                         </tbody>

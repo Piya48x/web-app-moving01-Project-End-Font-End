@@ -7,10 +7,12 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import NavbarCUS from "./NavbarCUS";
 import FollowDriverComponent from "./FollowDriverComponent";
+import GoogleMapReact from "google-map-react";
+import Geocode from "react-geocode";
 
 const socket = io("http://localhost:3000");
-//const googleMapsApiKey = "AIzaSyAp5OleyH2H46AGS4kFoPvVu2SDZqCz5nc"; // Replace with your API key
-const googleMapsApiKey = "AIzaSyDaxJ68f77blduDAbITOX0hfp-CDfhOYO4"; // Replace with your API key
+const googleMapsApiKey = "AIzaSyAp5OleyH2H46AGS4kFoPvVu2SDZqkg-hCz5nc"; // Replace with your Google Maps API key
+//const googleMapsApiKey = "AIzaSyAp5OleyH2H46AGS4kFoPvVu2SDZqCz5nc"; // แทนด้วย API key ของคุณ
 
 function CustomerComponent() {
   const [selectedVehicle, setSelectedVehicle] = useState("");
@@ -31,82 +33,73 @@ function CustomerComponent() {
   const [showAlert, setShowAlert] = useState(false);
   const [orders, setOrders] = useState([]);
 
-
   const navigate = useNavigate();
 
-  // ใน CustomerComponent
-  // useEffect เพื่อรับข้อความจาก DriverComponent เมื่อมีการยกเลิกการสั่งซื้อ
   useEffect(() => {
     const handleOrderCancelled = () => {
-      // ตั้งค่า showAlert เมื่อมีการยกเลิกคำสั่ง
       setShowAlert(true);
     };
 
-    // ตั้งค่าการฟังเหตุการณ์การยกเลิกการสั่งซื้อ
     socket.on("orderCancelled", handleOrderCancelled);
 
-    // ทำความสะอาด listener เมื่อ unmount
     return () => {
       socket.off("orderCancelled", handleOrderCancelled);
     };
   }, []);
 
   useEffect(() => {
-    const handleOrderCancelled1 = () => {
-      // แสดงข้อความเมื่อมีการยกเลิกการสั่งซื้อ
+    const handleOrderAccepted = () => {
       alert("คนขับได้ตอบรับ Order เรียบร้อยแล้ว.");
-      // setTimeout(()=>{
-      //   navigate("/FollowDriverComponent");
-      // }, 2000)
-      
     };
 
-    // ตั้งค่าการฟังเหตุการณ์การยกเลิกการสั่งซื้อ
-    socket.on("orderAccepted", handleOrderCancelled1);
+    socket.on("orderAccepted", handleOrderAccepted);
 
-    // ทำความสะอาด listener เมื่อ unmount
     return () => {
-      socket.off("orderAccepted", handleOrderCancelled1);
+      socket.off("orderAccepted", handleOrderAccepted);
     };
   }, []);
 
+  // Fetch place name from coordinates using react-geocode
   useEffect(() => {
-    const handleOrderCancelled2 = () => {
+    const fetchPlaceName = async () => {
+      try {
+        const response = await Geocode.fromLatLng(
+          pickupLocation.lat,
+          pickupLocation.lng
+        );
+        const address = response.results[0].formatted_address;
+        console.log("Pickup location address:", address);
+      } catch (error) {
+        console.error("Error fetching place name:", error);
+      }
+    };
+
+    if (pickupLocation) {
+      fetchPlaceName();
+    }
+  }, [pickupLocation]);
+
+  useEffect(() => {
+    const handleJobFinished = () => {
       navigate("/SuccessCustomer");
     };
 
-    // ตั้งค่าการฟังเหตุการณ์การยกเลิกการสั่งซื้อ
-    socket.on("jobFinished", handleOrderCancelled2);
+    socket.on("jobFinished", handleJobFinished);
 
-    // ทำความสะอาด listener เมื่อ unmount
     return () => {
-      socket.off("jobFinished", handleOrderCancelled2);
+      socket.off("jobFinished", handleJobFinished);
     };
   }, []);
 
   useEffect(() => {
-    // Listen for currentUserInfo event from the server
     socket.on("currentUserInfo", (userInfo) => {
       setCurrentUserInfo(userInfo);
     });
 
     return () => {
-      // Clean up socket listener when component unmounts
       socket.off("currentUserInfo");
     };
   }, []);
-
-  // useEffect(() => {
-  //   // Listen for currentUserInfo event from DriverComponent
-  //   socket.on("currentUserInfo", (userInfo) => {
-  //     setCurrentUserInfo(userInfo);
-  //   });
-
-  //   return () => {
-  //     // Clean up socket listener
-  //     socket.off("currentUserInfo");
-  //   };
-  // }, []);
 
   const calculateRoute = async () => {
     if (pickupLocation && dropoffLocation) {
@@ -128,9 +121,8 @@ function CustomerComponent() {
           });
 
           const totalDistanceInKm = totalDistance / 1000;
-          const totalCost = totalDistanceInKm * 25; // ค่าคำนวณเส้นทาง กิโลละ 25 บาท
+          const totalCost = totalDistanceInKm * 25;
 
-          // แสดงผลเป็นเด้งเมื่อเลือกจุดรับและจุดส่งเสร็จสิ้น
           if (pickupLocation && dropoffLocation) {
             setTotalDistance(totalDistanceInKm);
             setTotalCost(totalCost);
@@ -163,15 +155,25 @@ function CustomerComponent() {
         center: { lat: currentPosition.lat, lng: currentPosition.lng },
         zoom: 15,
       });
-
+    
       const pickupAutocomplete = new window.google.maps.places.Autocomplete(
-        document.getElementById("pickup-input")
+        document.getElementById("pickup-input"),
+        {
+          fields: ["place_id", "geometry", "name"], // ระบุฟิลด์ที่ต้องการรับข้อมูล
+          
+          componentRestrictions: { country: "th" }, // จำกัดสถานที่ให้แสดงเฉพาะในประเทศไทย
+        }
       );
-
+    
       const dropoffAutocomplete = new window.google.maps.places.Autocomplete(
-        document.getElementById("dropoff-input")
+        document.getElementById("dropoff-input"),
+        {
+          fields: ["place_id", "geometry", "name"], // ระบุฟิลด์ที่ต้องการรับข้อมูล
+         
+          componentRestrictions: { country: "th" }, // จำกัดสถานที่ให้แสดงเฉพาะในประเทศไทย
+        }
       );
-
+    
       pickupAutocomplete.addListener("place_changed", () => {
         const place = pickupAutocomplete.getPlace();
         setPickupLocation({
@@ -179,11 +181,11 @@ function CustomerComponent() {
           lng: place.geometry.location.lng(),
           name: place.name,
         });
-
+    
         if (pickupMarker) {
           pickupMarker.setMap(null);
         }
-
+    
         const marker = new window.google.maps.Marker({
           position: {
             lat: place.geometry.location.lat(),
@@ -192,10 +194,10 @@ function CustomerComponent() {
           map: map,
           title: place.name,
         });
-
+        setPickupLocationInput(place.name);
         setPickupMarker(marker);
       });
-
+    
       dropoffAutocomplete.addListener("place_changed", () => {
         const place = dropoffAutocomplete.getPlace();
         setDropoffLocation({
@@ -203,11 +205,11 @@ function CustomerComponent() {
           lng: place.geometry.location.lng(),
           name: place.name,
         });
-
+    
         if (dropoffMarker) {
           dropoffMarker.setMap(null);
         }
-
+    
         const marker = new window.google.maps.Marker({
           position: {
             lat: place.geometry.location.lat(),
@@ -216,16 +218,17 @@ function CustomerComponent() {
           map: map,
           title: place.name,
         });
-
+        setDropoffLocationInput(place.name);
         setDropoffMarker(marker);
       });
     };
-
+    
     const script = document.createElement("script");
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${googleMapsApiKey}&libraries=places`;
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${googleMapsApiKey}&libraries=places&language=th`;
     script.async = true;
     script.onload = initMap;
     document.head.appendChild(script);
+    
 
     return () => {
       document.head.removeChild(script);
@@ -291,53 +294,14 @@ function CustomerComponent() {
     }
   };
 
-  // const handleSubmit = async () => {
-  //   // Create order data
-  //   const orderData = {
-  //     vehicle: selectedVehicle,
-  //     bookingStatus:
-  //       selectedBookingStatus === "Scheduled"
-  //         ? moment(selectedDateTime).locale("th").format("YYYY-MM-DD[T]HH:mm")
-  //         : selectedBookingStatus,
-  //     pickupLocation,
-  //     dropoffLocation,
-  //     selectedDateTime,
-  //     totalDistance,
-  //     totalCost,
-  //   };
-
-  //   try {
-  //     // Send the order data to the server via Socket.IO
-  //     socket.emit("orderReceived", orderData);
-      
-
-  //     console.log("Order data sent:", orderData);
-  //     alert("โปรดรอสักครู่ กำลังค้นหาคนขับ...");
-
-  //     // Reset state values
-  //     setSelectedVehicle("");
-  //     setSelectedBookingStatus("");
-  //     setPickupLocationInput("");
-  //     setDropoffLocationInput("");
-  //     setPickupLocation(null);
-  //     setDropoffLocation(null);
-  //     setSelectedDateTime(null);
-  //     setTotalDistance(0); // Reset total distance
-  //     setTotalCost(0); // Reset total cost
-  //     setShowOrderConfirmation(false); // Hide order confirmation
-  //   } catch (error) {
-  //     console.error("Error sending order data:", error.message);
-  //     alert("Error sending order data. Please try again later.");
-  //   }
-  // };
-
   const handleSubmit = async () => {
-    // Create order data
     const orderData = {
       vehicle: selectedVehicle,
       bookingStatus:
         selectedBookingStatus === "Scheduled"
-          ? moment(selectedDateTime).locale("th").format("YYYY-MM-DD[T]HH:mm")
+          ? moment(selectedDateTime)
+              .locale("th")
+              .format("วันที่ DD-MM-YYYY เวลา HH:mm")
           : selectedBookingStatus,
       pickupLocation,
       dropoffLocation,
@@ -346,7 +310,6 @@ function CustomerComponent() {
       totalCost,
     };
 
-
     try {
       const response = await axios.post(
         "http://localhost:3000/api/booking",
@@ -354,12 +317,10 @@ function CustomerComponent() {
       );
       if (response.status === 200) {
         console.log("Order placed successfully");
-        alert("Order placed successfully");
+        alert("โปรดรอสักครู่กำลังค้นหาคนขับ...");
 
-        // Send 'orderReceived' event to server via Socket.IO
         socket.emit("orderReceived", orderData);
 
-        // Reset state values
         setSelectedVehicle("");
         setSelectedBookingStatus("");
         setPickupLocationInput("");
@@ -367,9 +328,9 @@ function CustomerComponent() {
         setPickupLocation(null);
         setDropoffLocation(null);
         setSelectedDateTime(null);
-        setTotalDistance(0); // Reset total distance
-      setTotalCost(0); // Reset total cost
-      setShowOrderConfirmation(false); // Hide order confirmation
+        setTotalDistance(0);
+        setTotalCost(0);
+        setShowOrderConfirmation(false);
       } else {
         console.error("Failed to place order:", response.statusText);
         alert("Failed to place order. Please try again later.");
@@ -390,72 +351,119 @@ function CustomerComponent() {
   };
 
   const handleRetry = () => {
-    setShowAlert(false); // ลบ showAlert ออกไป
-    // เรียกใช้ฟังก์ชันหรือเมธอดอื่น ๆ ที่คุณต้องการเมื่อกด Retry
+    setShowAlert(false);
   };
 
   return (
     <>
       <NavbarCUS />
-      
-      
       <div className="flex flex-col h-screen">
         <div className="flex flex-1">
-          {/* Left Panel */}
           <div className="w-full md:w-1/4 bg-white p-4 flex flex-col">
-            {/* Current User Information */}
             <div className="container mx-auto p-4">
-              <h2 className="text-2xl font-bold mb-4">
-                Current User Information
-              </h2>
+              <h2 className="text-2xl font-bold mb-4">สั่ง Order</h2>
               {currentUserInfo && (
                 <div>
-                  <p>User: {currentUserInfo.user}</p>
-                  <p>Email: {currentUserInfo.email}</p>
-                 
+                  <p>ผู้ใช้: {currentUserInfo.user}</p>
+                  <p>อีเมล: {currentUserInfo.email}</p>
                 </div>
               )}
             </div>
-            {/* Vehicle selection */}
-            <div className="mb-4">
+            <div style={{ marginTop: "2px" }}>
               <label
                 className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
-                htmlFor="vehicle"
+                htmlFor="pickup-input"
               >
-                Select Vehicle
+                เลือกสถานที่รับ
               </label>
-              <select
-                id="vehicle"
-                className="w-full p-2 border border-gray-300 rounded-md "
-                value={selectedVehicle}
-                onChange={(e) => setSelectedVehicle(e.target.value)}
+              <input
+                id="pickup-input"
+                type="text"
+                placeholder="กรอกสถานที่รับสินค้า"
+                className="w-full p-2 border border-gray-300 rounded-md mb-4 "
+                value={pickupLocationInput}
+                onChange={(e) => setPickupLocationInput(e.target.value)}
+              />
+               <label
+                className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
+                htmlFor="dropoff-input"
               >
-                <option value="">Select Vehicle</option>
-                <option value="Motorcycle">Motorcycle</option>
-                <option value="3-Wheeler">3-Wheeler</option>
-                <option value="Pickup Truck">Pickup Truck</option>
-                <option value="6-Wheeler-Truck">6-Wheeler-Truck</option>
-              </select>
+                เลือกสถานที่ส่ง
+              </label>
+              <input
+                id="dropoff-input"
+                type="text"
+                placeholder="กรอกสถานที่ส่งสินค้า"
+                className="w-full p-2 border border-gray-300 rounded-md mb-4"
+                value={dropoffLocationInput}
+                onChange={(e) => setDropoffLocationInput(e.target.value)}
+              />
+              {pickupLocation && (
+                <button
+                  className="w-full bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+                  onClick={clearPickupLocation}
+                >
+                  ล้างสถานที่รับสินค้า
+                </button>
+              )}
+              {dropoffLocation && (
+                <button
+                  className="w-full mt-1 bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+                  onClick={clearDropoffLocation}
+                >
+                  ล้างสถานที่ส่งสินค้า
+                </button>
+              )}
+              {/* <button
+                className="mt-4 bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
+                onClick={handleSubmit}
+              >
+                ยืนยันการสั่งซื้อ
+              </button> */}
+              <button
+                className="mb-20 w-full mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                onClick={calculateRoute}
+              >
+                คำนวณเส้นทาง
+              </button>
+              {showAlert && (
+                <div onClick={handleRetry} role="alert">
+                  <div className="bg-red-500 text-white font-bold rounded-t px-4 py-2">
+                    แจ้งเตือน: สั่งซื้ออีกครั้ง
+                  </div>
+                  <div className="border border-t-0 border-red-400 rounded-b bg-red-100 px-4 py-3 text-red-700">
+                    <p>คำสั่งของคุณถูกยกเลิกโดยคนขับ</p>
+                    <button>ลองอีกครั้ง</button>
+                  </div>
+                </div>
+              )}
+              {pickupLocation && dropoffLocation && (
+                <button
+                  className="w-full mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                  onClick={handleViewOnGoogleMaps}
+                >
+                  ดูบน Google Maps
+                </button>
+              )}
             </div>
-            {/* Booking status selection */}
-            <div style={{ marginTop: "50px" }}>
+           
+            <div style={{ marginTop: "-50px" }}>
               <label
                 className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
                 htmlFor="bookingStatus"
               >
-                Select Booking
+                เลือกการจอง
               </label>
-              {/* Booking status buttons */}
               <div className="flex flex-wrap">
                 <div
-                  className={`border border-gray-300 rounded-md mb-4 p-2 cursor-pointer ${
-                    selectedBookingStatus === "Urgent"
+                  className={`mr-2 border border-gray-300 rounded-md mb-4 p-2 cursor-pointer ${
+                    selectedBookingStatus === "ด่วน"
                       ? "bg-yellow-500 text-white"
                       : ""
                   }`}
-                  onClick={() => handleBookingStatusChange("Urgent")}
+                  onClick={() => handleBookingStatusChange("ด่วน")}
                 >
-                  Urgent
+                  ด่วน
                 </div>
                 <div
                   className={`border border-gray-300 rounded-md mb-4 p-2 cursor-pointer ${
@@ -467,17 +475,18 @@ function CustomerComponent() {
                 >
                   {selectedBookingStatus === "Scheduled" ? (
                     <>
-                      Scheduled:{" "}
+                      วางแผน:{" "}
                       {selectedDateTime
                         ? moment(selectedDateTime)
                             .locale("th")
-                            .format("YYYY-MM-DD T HH:mm")
+                            .format("วันที่ DD-MM-YYYY เวลา HH:mm")
                         : "กรุณาเลือกเวลา"}
                     </>
                   ) : (
-                    "Scheduled"
+                    "จองล่วงหน้า"
                   )}
                 </div>
+                
                 {selectedBookingStatus === "Scheduled" && (
                   <input
                     type="datetime-local"
@@ -486,160 +495,95 @@ function CustomerComponent() {
                       selectedDateTime
                         ? moment(selectedDateTime)
                             .locale("th")
-                            .format("YYYY-MM-DDTHH:mm")
+                            .format("วันที่ DD-MM-YYYY เวลา HH:mm")
                         : ""
                     }
                     onChange={(e) => setSelectedDateTime(e.target.value)}
                   />
                 )}
                 <div
-                  className={`border border-gray-300 rounded-md mb-4 p-2 cursor-pointer ${
-                    selectedBookingStatus === "Full Day"
+                  className={`text-center ml-2 flex-1 border border-gray-300 rounded-md mb-4 p-2 cursor-pointer ${
+                    selectedBookingStatus === "เหมาเต็มวัน"
                       ? "bg-blue-500 text-white"
                       : ""
                   }`}
-                  onClick={() => handleBookingStatusChange("Full Day")}
+                  onClick={() => handleBookingStatusChange("เหมาเต็มวัน")}
                 >
-                  Full Day
+                  เหมาเต็มวัน
                 </div>
               </div>
             </div>
-            {/* Calculate route button */}
-            {/* Location input */}
-            <div style={{ marginTop: "50px" }}>
+            <div style={{ marginTop: "20px" }} className="mb-4">
               <label
                 className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
-                htmlFor="pickup-input"
+                htmlFor="vehicle"
               >
-                Select Location
+                เลือกประเภทรถ
               </label>
-              <input
-                id="pickup-input"
-                type="text"
-                placeholder="Enter pick-up location"
-                className="w-full p-2 border border-gray-300 rounded-md mb-4 "
-                value={pickupLocationInput}
-                onChange={(e) => setPickupLocationInput(e.target.value)}
-              />
-              <input
-                id="dropoff-input"
-                type="text"
-                placeholder="Enter drop-off location"
-                className="w-full p-2 border border-gray-300 rounded-md mb-4"
-                value={dropoffLocationInput}
-                onChange={(e) => setDropoffLocationInput(e.target.value)}
-              />
-              {/* Clear location buttons */}
-              {pickupLocation && (
-                <button
-                  className="w-full bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
-                  onClick={clearPickupLocation}
-                >
-                  Clear Pick-up Location
-                </button>
-              )}
-              {dropoffLocation && (
-                <button
-                  className="w-full mt-1 bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
-                  onClick={clearDropoffLocation}
-                >
-                  Clear Drop-off Location
-                </button>
-              )}
-              {/* Confirm order button */}
-              <button
-                className="mt-4 bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
-                onClick={handleSubmit}
+              <select
+                id="vehicle"
+                className="w-full p-2 border border-gray-300 rounded-md "
+                value={selectedVehicle}
+                onChange={(e) => setSelectedVehicle(e.target.value)}
               >
-                Confirm Order
-              </button>
-              <button
-                className="mb-20 w-full mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-                onClick={calculateRoute}
-              >
-                Calculate Route
-              </button>
-              {showAlert && (
-                <div onClick={handleRetry} role="alert">
-                  <div className="bg-red-500 text-white font-bold rounded-t px-4 py-2">
-                    Notification: order again
-                  </div>
-                  <div  className="border border-t-0 border-red-400 rounded-b bg-red-100 px-4 py-3 text-red-700">
-                    <p>คำสั่งของคุณถูกยกเลิกโดยคนขับ</p>
-                    <button>Retry</button>
-                  </div>
-                </div>
-              )}
-              {pickupLocation && dropoffLocation && (
-                <button
-                  className="w-full mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-                  onClick={handleViewOnGoogleMaps}
-                >
-                  View on Google Maps
-                </button>
-              )}
+                <option value="">เลือกประเภท</option>
+                <option value="จักรยานยนต์">จักรยานยนต์</option>
+                <option value="รถ 3 ล้อ">รถ 3 ล้อ</option>
+                <option value="รถกระบะ">รถกระบะ</option>
+                <option value="รถบรรทุก 6 ล้อ">รถบรรทุก 6 ล้อ</option>
+              </select>
             </div>
           </div>
-          {/* Map */}
           
           <div
             className="w-full md:w-3/4"
             id="map"
-            style={{ height: "100vh" }}
+            style={{ height: "800px" }}
           ></div>
           <FollowDriverComponent className="absolute top-0 left-0 z-50 w-full border-red-500 rounded-full" />
-
-          {/* Order confirmation */}
           {showOrderConfirmation && (
             <div className="fixed bottom-0 left-0 bg-white p-4 w-full">
-              <p>Vehicle: {selectedVehicle}</p>
+              <p>ยานพาหนะ: {selectedVehicle}</p>
               <p>
-                Booking Status:{" "}
+                สถานะการจอง:{" "}
                 {selectedBookingStatus === "Scheduled"
                   ? moment(selectedDateTime)
                       .locale("th")
-                      .format("YYYY-MM-DD[T]HH:mm")
+                      .format("วันที่ DD-MM-YYYY เวลา HH:mm")
                   : selectedBookingStatus}
               </p>
               {pickupLocation && (
                 <p>
-                  Pickup Location: {pickupLocation.name} (Latitude:{" "}
-                  {pickupLocation.lat}, Longitude: {pickupLocation.lng})
+                  สถานที่รับสินค้า:{" "}
+                  {pickupLocation.name}
                 </p>
               )}
               {dropoffLocation && (
                 <p>
-                  Drop-off Location: {dropoffLocation.name} (Latitude:{" "}
-                  {dropoffLocation.lat}, Longitude: {dropoffLocation.lng})
+                  สถานที่ส่งสินค้า: {dropoffLocation.name}
                 </p>
               )}
-              <p>
-                Selected DateTime:{" "}
+
+              {/* <p>
+                เวลาที่เลือก:{" "}
                 {moment(selectedDateTime)
                   .locale("th")
-                  .format("YYYY-MM-DD HH:mm")}
-              </p>
-              <p>Total Distance: {totalDistance.toFixed(2)} km</p>
-              <p>Total Cost: {totalCost.toFixed(2)} Baht</p>
+                  .format("วันที่ DD-MM-YYYY เวลา HH:mm")}
+              </p> */}
+              <p>ระยะทางทั้งหมด: {totalDistance.toFixed(2)} กิโลเมตร</p>
+              <p>ราคารวม: {totalCost.toFixed(2).toLocaleString('th-TH')} บาท</p>
+
               <button
                 className="mt-4 bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
                 onClick={handleSubmit}
               >
-                Confirm Order
+                ยืนยันการสั่งซื้อ
               </button>
             </div>
           )}
         </div>
+        
       </div>
-      
-    
-      
-
-
-
-
-
-      
     </>
   );
 }

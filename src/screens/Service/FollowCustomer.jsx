@@ -8,33 +8,33 @@ function FollowCustomer() {
   const [messages, setMessages] = useState([]);
   const messagesEndRef = useRef(null);
 
-  // Function to send message
+  // ฟังก์ชันสำหรับส่งข้อความ
   const sendMessage = () => {
     if (message.trim() !== '') {
       socket.emit('message', message);
       setMessage('');
-      // Add the sent message to the list of messages
+      // เพิ่มข้อความที่ส่งไปยังรายการข้อความ
       setMessages([...messages, { text: message, sent: true }]);
     }
   };
 
-  // Effect to listen for incoming messages
+  // เอฟเฟกต์เพื่อฟังก์ชันในการรับข้อความเข้ามา
   useEffect(() => {
-    // Event listener when receiving 'message' event from the server
+    // ฟังก์ชันเมื่อได้รับเหตุการณ์ 'message' จากเซิร์ฟเวอร์
     const handleMessage = (message) => {
-      // Update messages state with the new message
+      // อัปเดตสถานะข้อความด้วยข้อความใหม่
       setMessages([...messages, { text: message, sent: false }]);
     };
 
     socket.on('message', handleMessage);
 
-    // Clean up socket listener
+    // ทำความสะอาดการฟังก์ชัน
     return () => {
       socket.off('message', handleMessage);
     };
   }, [messages]);
 
-  // Effect to scroll to the bottom when new message is received
+  // เอฟเฟกต์เพื่อสไครล์ล์ไปที่ด้านล่างเมื่อได้รับข้อความใหม่
   useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
@@ -43,7 +43,7 @@ function FollowCustomer() {
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Chat Driver</h1>
+      <h1 className="text-2xl font-bold mb-4">แชทกับลูกค้า</h1>
       <div className="flex flex-col space-y-2 overflow-y-auto" style={{ maxHeight: '70vh' }}>
         {messages.map((msg, index) => (
           <div
@@ -61,13 +61,13 @@ function FollowCustomer() {
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           className="flex-grow border-gray-300 rounded-lg p-2"
-          placeholder="Type your message..."
+          placeholder="พิมพ์ข้อความของคุณ..."
         />
         <button
           onClick={sendMessage}
           className="bg-blue-500 text-white rounded-lg px-4 py-2"
         >
-          Send
+          ส่ง
         </button>
       </div>
     </div>

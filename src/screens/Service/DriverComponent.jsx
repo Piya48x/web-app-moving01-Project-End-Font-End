@@ -1,17 +1,15 @@
 import { useState, useEffect } from "react";
 import io from "socket.io-client";
-import "tailwindcss/tailwind.css"; // Import Tailwind CSS
+import "tailwindcss/tailwind.css"; // นำเข้า Tailwind CSS
 import SuccessPage from "./SuccessPage";
 import NavbarSV from "./NavbarSV";
 import { useNavigate } from "react-router-dom";
 import FollowCustomer from "./FollowCustomer";
 
-
-
-// Assuming your server is running at http://localhost:3000
+// ถ้าเซิร์ฟเวอร์ของคุณทำงานที่ http://localhost:3000
 const socket = io("http://localhost:3000");
 
-// Map component
+// คอมโพเนนต์แผนที่
 function Map({ initialCenter, pickupLocation, dropoffLocation }) {
   const [map, setMap] = useState(null);
   const [directionsService, setDirectionsService] = useState(null);
@@ -37,7 +35,7 @@ function Map({ initialCenter, pickupLocation, dropoffLocation }) {
     };
 
     if (!window.google) {
-      console.error("Google Maps API not loaded.");
+      console.error("Google Maps API ไม่ได้โหลด");
       return;
     }
 
@@ -45,7 +43,7 @@ function Map({ initialCenter, pickupLocation, dropoffLocation }) {
 
     return () => {
       if (map) {
-        // Clean up map instance
+        // ทำความสะอาดอินสแตนซ์แผนที่
         setMap(null);
       }
     };
@@ -72,7 +70,7 @@ function Map({ initialCenter, pickupLocation, dropoffLocation }) {
         if (status === "OK") {
           directionsRenderer.setDirections(result);
         } else {
-          console.error("Directions request failed due to " + status);
+          console.error("การขอเส้นทางล้มเหลวเนื่องจาก " + status);
         }
       });
     }
@@ -81,16 +79,16 @@ function Map({ initialCenter, pickupLocation, dropoffLocation }) {
   return <div id="map" className="h-96 w-full"></div>;
 }
 
-// Driver component
+// คอมโพเนนต์ของพนักงานขับ
 function DriverComponent() {
   const [driverLocation, setDriverLocation] = useState(null);
   const [order, setOrder] = useState(null);
-  const [acceptingOrder, setAcceptingOrder] = useState(false); // State to track whether the driver is accepting orders or not
+  const [acceptingOrder, setAcceptingOrder] = useState(false); // สถานะเพื่อติดตามว่าพนักงานขับกำลังรับคำสั่งหรือไม่
   const [jobFinished, setJobFinished] = useState(false);
-  const [chat, setChat] = useState(false); // State to track whether the chat with customer is started or not
+  const [chat, setChat] = useState(false); // สถานะเพื่อติดตามว่าการสนทนากับลูกค้าเริ่มขึ้นหรือไม่
   const navigate = useNavigate();
 
-  // Function to initialize Google Maps and set driver's location
+  // ฟังก์ชันสำหรับเริ่มต้น Google Maps และตั้งค่าตำแหน่งของพนักงานขับรถ
   useEffect(() => {
     const successCallback = (position) => {
       const { latitude, longitude } = position.coords;
@@ -98,31 +96,31 @@ function DriverComponent() {
     };
 
     const errorCallback = (error) => {
-      console.error("Error getting geolocation:", error);
+      console.error("เกิดข้อผิดพลาดในการรับตำแหน่ง:", error);
     };
 
     navigator.geolocation.getCurrentPosition(successCallback, errorCallback);
   }, []);
 
-  // Effect to listen for new orders
+  // เอฟเฟกต์สำหรับฟังเหตุการณ์รับคำสั่งใหม่
   useEffect(() => {
-    // Event listener when receiving 'newOrder' event from the server
+    // ฟังก์ชันเมื่อได้รับเหตุการณ์ 'newOrder' จากเซิร์ฟเวอร์
     const handleNewOrder = (newOrder) => {
-      // Update order state with the new order
+      // อัปเดตสถานะคำสั่งด้วยคำสั่งใหม่
       setOrder(newOrder);
     };
 
     socket.on("newOrder", handleNewOrder);
 
-    // Clean up socket listener
+    // ทำความสะอาดฟังก์ชันเซ็ตเลนเนอร์
     return () => {
       socket.off("newOrder", handleNewOrder);
     };
   }, []);
 
   const handleRejectOrder = () => {
-    setOrder(null); // Clear the order when rejecting it
-    setAcceptingOrder(false); // Set acceptingOrder state to false when rejecting the order
+    setOrder(null); // เคลียร์คำสั่งเมื่อปฏิเสธ
+    setAcceptingOrder(false); // ตั้งค่าสถานะรับคำสั่งเป็นเท็จเมื่อปฏิเสธคำสั่ง
 
     // ส่งข้อความผ่าน Socket.IO ไปยัง CustomerComponent
     socket.emit("orderCancelled");
@@ -132,11 +130,11 @@ function DriverComponent() {
     // ส่งข้อความผ่าน Socket.IO ไปยัง CustomerComponent
     socket.emit("orderAccepted");
     socket.emit("orderReceived2", order);
-    // ทำการปิดปุ่ม Accept Order และ Reject Order
+    // ปิดปุ่มรับคำสั่งและปฏิเสธคำสั่ง
     setAcceptingOrder(true);
   };
 
-  // เพิ่มฟังก์ชัน handleViewOnGoogleMaps สำหรับเปิดลิงก์ไปยัง Google Maps
+  // เพิ่มฟังก์ชัน handleViewOnGoogleMaps เพื่อเปิดลิงก์ไปยัง Google Maps
   const handleViewOnGoogleMaps = () => {
     if (order.pickupLocation && order.dropoffLocation) {
       const pickupCoords = `${order.pickupLocation.lat},${order.pickupLocation.lng}`;
@@ -169,22 +167,22 @@ function DriverComponent() {
       });
 
       if (response.ok) {
-        console.log("Order saved successfully");
+        console.log("บันทึกคำสั่งเรียบร้อยแล้ว");
         setJobFinished(true);
         setOrder(null);
         setAcceptingOrder(false);
         setChat(false)
       } else {
-        console.error("Failed to save order");
+        console.error("การบันทึกคำสั่งล้มเหลว");
       }
     } catch (error) {
-      console.error("Error saving order:", error);
+      console.error("เกิดข้อผิดพลาดในการบันทึกคำสั่ง:", error);
     }
   };
 
   const handleConfirmFinishJob = () => {
     const isConfirmed = window.confirm(
-      "Are you sure you want to finish this job?"
+      "คุณแน่ใจหรือไม่ว่าต้องการจบงานนี้?"
     );
     if (isConfirmed) {
       handleFinishJob(); // เรียกใช้ handleFinishJob หากผู้ใช้ยืนยันการเสร็จสิ้นงาน
@@ -192,7 +190,7 @@ function DriverComponent() {
   };
 
   const handleBackToDashboard = () => {
-    setJobFinished(false); // เมื่อกดปุ่ม "Back to Dashboard" ให้ตั้งค่า jobFinished เป็น false เพื่อให้สามารถยอมรับคำสั่งใหม่ได้อีกครั้ง
+    setJobFinished(false); // เมื่อคลิกปุ่ม "กลับไปที่แดชบอร์ด" ให้ตั้งค่า jobFinished เป็น false เพื่อให้สามารถรับคำสั่งใหม่ได้อีกครั้ง
   };
 
   return (
@@ -201,7 +199,7 @@ function DriverComponent() {
      
       <hr />
       <div className="container mx-auto p-4">
-        {/* Display SuccessPage if job is finished */}
+        {/* แสดงหน้า SuccessPage หากงานเสร็จสิ้น */}
         {jobFinished ? (
           <SuccessPage onBackToDashboard={handleBackToDashboard} />
         ) : (
@@ -213,69 +211,63 @@ function DriverComponent() {
             />
             {driverLocation && (
               <p className="text-center mt-4">
-                Driver's Location: Latitude {driverLocation.lat}, Longitude{" "}
+                ตำแหน่งของพนักงานขับ: ละติจูด {driverLocation.lat}, ลองจิจูด{" "}
                 {driverLocation.lng}
               </p>
             )}
             <hr />
             {order && (
               <div className="mt-8">
-                <h2 className="text-2xl font-bold mb-4">Order Details</h2>
-                <p>Vehicle: {order.vehicle}</p>
-                <p>Booking Status: {order.bookingStatus}</p>
+                <h2 className="text-2xl font-bold mb-4">รายละเอียดคำสั่ง</h2>
+                <p>ยานพาหนะ: {order.vehicle}</p>
+                <p>สถานะการจอง: {order.bookingStatus}</p>
                 {order.pickupLocation && (
-                  <p>Pickup Location: {order.pickupLocation.name}</p>
+                  <p>สถานที่รับสินค้า: {order.pickupLocation.name}</p>
                 )}
                 {order.dropoffLocation && (
-                  <p>Drop-off Location: {order.dropoffLocation.name}</p>
+                  <p>สถานที่ส่งสินค้า: {order.dropoffLocation.name}</p>
                 )}
-                <p>Selected DateTime: {order.selectedDateTime}</p>
-                <p>Total Distance: {order.totalDistance} km</p>
-                <p>Total Cost: {order.totalCost} Baht</p>
+                {/* <p>เวลาที่เลือก: {order.selectedDateTime}</p> */}
+                <p>ระยะทางทั้งหมด: {order.totalDistance} กิโลเมตร</p>
+                <p>ราคาทั้งหมด: {order.totalCost} บาท</p>
                 <div className="flex justify-center mt-4">
                   {acceptingOrder ? (
-                 <>
-                 
-                 <div>
-                 <div className="mt-20 flex relative">
-                   <div style={{marginLeft: '1px', marginBottom: '50px'}} className=" bg-gray-200 p-4 rounded-lg max-w-md">
-                     <FollowCustomer />
-                   </div>
-                 </div>
-                   <div className="flex items-center justify-center flex-wrap">
-                     <button
-                       onClick={handleViewOnGoogleMaps}
-                       className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-4"
-                     >
-                       View on Google Maps
-                     </button>
-                     <button
-                       onClick={handleConfirmFinishJob}
-                       className="bg-green-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
-                     >
-                       Finish Job
-                     </button>
-                   </div>
-                 </div>
-                 
-               </>
-               
-                  
-
-                  
+                    <>
+                    <div>
+                      <div className="mt-20 flex relative">
+                        <div style={{marginLeft: '1px', marginBottom: '50px'}} className=" bg-gray-200 p-4 rounded-lg max-w-md">
+                          <FollowCustomer />
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-center flex-wrap">
+                        <button
+                          onClick={handleViewOnGoogleMaps}
+                          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-4"
+                        >
+                          ดูบน Google Maps
+                        </button>
+                        <button
+                          onClick={handleConfirmFinishJob}
+                          className="bg-green-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
+                        >
+                          จบงาน
+                        </button>
+                      </div>
+                    </div>
+                    </>
                   ) : (
                     <>
                       <button
                         onClick={handleAcceptOrder}
                         className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mr-4"
                       >
-                        Accept Order
+                        รับคำสั่ง
                       </button>
                       <button
                         onClick={handleRejectOrder}
                         className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
                       >
-                        Reject Order
+                        ปฏิเสธคำสั่ง
                       </button>
                     </>
                   )}
@@ -283,7 +275,7 @@ function DriverComponent() {
               </div>
             )}
             {!acceptingOrder && !order && (
-              <p className="text-center mt-8">Searching for orders...</p>
+              <p className="text-center mt-8">กำลังค้นหาคำสั่ง...</p>
             )}
           </div>
         )}

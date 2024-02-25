@@ -46,7 +46,7 @@ function NavbarCUS() {
 
 
   return (
-    <div className="navbar bg-base-100">
+    <div style={{borderBottomLeftRadius: '10PX', borderBottomRightRadius: "10PX"}} className="navbar bg-base-100">
       <div className="navbar-start">
         <div className="dropdown">
           <div tabIndex={0} role="button" className="btn btn-ghost btn-circle">
@@ -55,15 +55,18 @@ function NavbarCUS() {
             </svg>
           </div>
           <ul tabIndex={0} className="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
-            <li><Link to="/CustomerComponent">Home</Link></li>
-            <li><a>Profile</a></li>
-            <li><Link to="/Booking">History Booking</Link></li>
-            <li  onClick={handleLogout}><a>Log out</a></li>
+            <li><Link to="/CustomerComponent">หน้าหลัก</Link></li>
+            {/* <li><a>โปรไฟล์</a></li> */}
+            <li><Link to="/Booking">ประวัติการสั่งจอง</Link></li>
+          <br />
+          <br />
+
+            <li  onClick={handleLogout}><a>ออกจากระบบ</a></li>
           </ul>
         </div>
       </div>
       <div className="navbar-center">
-        <a className="btn btn-ghost text-xl">Moving Items</a>
+        <a className="btn btn-ghost text-xl">Custoemr</a>
       </div>
       <div className="navbar-end">
         <button className="btn btn-ghost btn-circle" onClick={handleNotificationClick}>

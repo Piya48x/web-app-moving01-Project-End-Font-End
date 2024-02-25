@@ -26,8 +26,9 @@ function RegisterCustomer() {
         "http://localhost:3000/api/register-customer",
         formData
       );
+      alert("ลงทะเบียนเสร็จเรียบร้อย")
       console.log(response.data);
-      // Reset form after successful submission
+      // รีเซ็ตฟอร์มหลังจากส่งข้อมูลสำเร็จ
       setFormData({
         user: "",
         email: "",
@@ -37,7 +38,7 @@ function RegisterCustomer() {
         address: "",
       });
     } catch (error) {
-      console.error("Error registering customer:", error);
+      console.error("เกิดข้อผิดพลาดในการลงทะเบียนลูกค้า:", error);
     }
   };
 
@@ -48,11 +49,11 @@ function RegisterCustomer() {
     >
       <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
         <h2 className="text-2xl font-semibold mb-4 text-center">
-          Register as a Customer
+          ลงทะเบียนสำหรับลูกค้า
         </h2>
         <form className="space-y-4" onSubmit={handleSubmit}>
           <div>
-            <label htmlFor="user">User</label>
+            <label htmlFor="user">ชื่อ-นามสกุล</label>
             <input
               type="text"
               id="user"
@@ -64,7 +65,7 @@ function RegisterCustomer() {
             />
           </div>
           <div>
-            <label htmlFor="email">Email</label>
+            <label htmlFor="email">อีเมล</label>
             <input
               type="email"
               id="email"
@@ -76,7 +77,7 @@ function RegisterCustomer() {
             />
           </div>
           <div>
-            <label htmlFor="password">Password</label>
+            <label htmlFor="password">รหัสผ่าน</label>
             <input
               type="password"
               id="password"
@@ -85,10 +86,10 @@ function RegisterCustomer() {
               onChange={handleChange}
               required
               className="input w-full bg-white border-2 border-blue-600"
-            />
+            /><p style={{fontSize: '12px'}} >รหัสต้องใส่อย่างน้อย 8-10 ตัว</p>
           </div>
           <div>
-            <label htmlFor="confirmPassword">Confirm Password</label>
+            <label htmlFor="confirmPassword">ยืนยันรหัสผ่าน</label>
             <input
               type="password"
               id="confirmPassword"
@@ -100,7 +101,7 @@ function RegisterCustomer() {
             />
           </div>
           <div>
-            <label htmlFor="phoneNumber">Phone Number</label>
+            <label htmlFor="phoneNumber">หมายเลขโทรศัพท์</label>
             <input
               type="text"
               id="phoneNumber"
@@ -112,7 +113,7 @@ function RegisterCustomer() {
             />
           </div>
           <div>
-            <label htmlFor="address">Address</label>
+            <label htmlFor="address">ที่อยู่</label>
             <input
               type="text"
               id="address"
@@ -124,7 +125,7 @@ function RegisterCustomer() {
             />
           </div>
           <button type="submit" className="btn group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-            Register
+            ลงทะเบียน
           </button>
         </form>
       </div>

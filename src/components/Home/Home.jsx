@@ -16,6 +16,7 @@ function Home() {
     alignItems: "center",
     color: "#000", // สีข้อความ
     position: "relative",
+    
   };
 
   const buttonStyle = {
@@ -44,6 +45,9 @@ function Home() {
     fontSize: "2em",
     marginBottom: "10px",
     fontWeight: "bold",
+    color: 'black',
+    marginTop: '80px'
+
   };
 
   const paragraphStyle = {
@@ -51,11 +55,24 @@ function Home() {
     maxWidth: "900px",
     margin: "0 auto",
     fontWeight: "bold",
+    color: 'black'
   };
   function Welcome() {
     return (
       <>
         <Navbar />
+        <div style={textContainerStyle}>
+          <h1 style={headerStyle}>
+            ระบบจัดการเว็บแอพพลิเคชั่นสำหรับการย้ายของ
+          </h1>
+          <p style={paragraphStyle}>
+            ยินดีต้อนรับสู่ระบบจัดการเว็บแอพพลิเคชั่นสำหรับการย้ายของของเรา!
+            แพลตฟอร์มของเราถูกออกแบบมาเพื่อให้การจัดการกระบวนการย้ายของเป็นไปอย่างราบรื่นและมีประสิทธิภาพ
+            ไม่ว่าคุณจะเป็นผู้ให้บริการหรือผู้ใช้ที่ต้องการย้ายของ
+            แอปพลิเคชั่นของเรามีอินเตอร์เฟซที่ใช้งานง่ายและคุณสมบัติขั้นสูงเพื่อเสริมประสบการณ์ของคุณ
+          </p>
+        </div>
+        <hr />
         <div style={{ color: "black" }}>
           <h1
             style={{
@@ -66,7 +83,7 @@ function Home() {
               marginTop: "30px",
             }}
           >
-            Welcome to Our Website
+            ยินดีต้อนรับสู่เว็บไซต์ของเรา
           </h1>
           <center>
             <hr style={{ width: "200px" }} />
@@ -79,15 +96,14 @@ function Home() {
               marginTop: "30px",
             }}
           >
-            Key Features: Easy Registration and Login User-Friendly Interface
-            for Selecting Pick-up and Delivery Points Convenient Time
-            Reservation for Moving Services Selection of Various Vehicle Types
-            Real-time Communication through Calls and Chat Detailed Summary of
-            Addresses and Costs GPS Navigation for Efficient Routes In-app
-            Calculation of Fare Charges Service Provider Status Management
-            Experience the future of moving items with our innovative
-            application. Join us and make your moving experience smooth,
-            reliable, and hassle-free. Get started today!
+            คุณลักษณะหลัก: การลงทะเบียนและเข้าสู่ระบบง่าย ๆ การเลือกสถานที่
+            และส่งสินค้าผ่านอินเตอร์เฟซที่ใช้งานง่าย เวลาที่สะดวกสำหรับการจองบริการ
+            เลือกประเภทยานพาหนะต่าง ๆ การสื่อสารแบบเรียลไทม์ผ่านการโทรและแชท
+            สรุปรายละเอียดที่อยู่และค่าใช้จ่ายอย่างละเอียด
+            การนำทางด้วย GPS สำหรับเส้นทางที่มีประสิทธิภาพ การคำนวณค่าบริการในแอพ
+            การจัดการสถานะผู้ให้บริการ มาสัมผัสประสบการณ์การย้ายของโดยใช้แอพฯ
+            ของเราที่นวัตกรรม มาร่วมเป็นส่วนหนึ่งและทำให้ประสบการณ์การย้ายของคุณ
+            ราบรื่น น่าเชื่อถือ และปลอดภัย โดยเริ่มต้นใช้บริการได้เลยวันนี้!
           </p>
         </div>
       </>
@@ -106,7 +122,7 @@ function Home() {
             color: "black",
           }}
         >
-          Our Services
+          บริการของเรา
         </h1>
 
         <center>
@@ -139,9 +155,9 @@ function Home() {
             }}
           >
             <h2 style={{ fontWeight: "bold", fontSize: "1.5em" }}>
-              Easy Registration
+              การลงทะเบียนง่าย
             </h2>
-            <p>Conveniently register and log in to access our services.</p>
+            <p>ลงทะเบียนและเข้าสู่ระบบได้อย่างสะดวกสบาย</p>
           </div>
 
           {/* กล่องที่ 2 */}
@@ -160,11 +176,10 @@ function Home() {
             }}
           >
             <h2 style={{ fontWeight: "bold", fontSize: "1.5em" }}>
-              User-Friendly Interface
+              อินเตอร์เฟซที่ใช้งานง่าย
             </h2>
             <p>
-              Select pick-up and delivery points with ease using our friendly
-              interface.
+              เลือกสถานที่และจุดส่งสินค้าได้โดยง่ายดายโดยใช้อินเตอร์เฟซที่เป็นมิตร
             </p>
           </div>
 
@@ -184,11 +199,10 @@ function Home() {
             }}
           >
             <h2 style={{ fontWeight: "bold", fontSize: "1.5em" }}>
-              Real-time Communication
+              การสื่อสารแบบเรียลไทม์
             </h2>
             <p>
-              Stay connected through real-time calls and chat for efficient
-              communication.
+              คงอยู่ต่อการสื่อสารผ่านการโทรและแชทแบบเรียลไทม์เพื่อการสื่อสารที่มีประสิทธิภาพ
             </p>
           </div>
         </div>
@@ -208,7 +222,7 @@ function Home() {
             color: "black",
           }}
         >
-          Our About
+          เกี่ยวกับเรา
         </h1>
         <center>
           <hr style={{ width: "200px" }} />
@@ -227,7 +241,7 @@ function Home() {
                 className="rounded-full overflow-hidden border-4 border-white"
               >
                 <img
-                  src="https://scontent.fkkc3-1.fna.fbcdn.net/v/t39.30808-6/370908546_1975921156116128_816666289389713510_n.jpg?_nc_cat=107&ccb=1-7&_nc_sid=efb6e6&_nc_ohc=66OeyE9sBqYAX9kDsyo&_nc_ht=scontent.fkkc3-1.fna&oh=00_AfCgcNfUgxE81DasrskhbgbTyr-bHTidu35ruyRh_1gmuA&oe=65C5CAFB" // Replace with the actual path to your image
+                  src="https://scontent-bkk1-1.xx.fbcdn.net/v/t39.30808-6/370908546_1975921156116128_816666289389713510_n.jpg?_nc_cat=107&ccb=1-7&_nc_sid=efb6e6&_nc_eui2=AeGuY_ItJHJz_9XabwfUWN0Z1m-Hx8stz7XWb4fHyy3PtVAsKEmsZUmiU_MZ_dj4Wo-pG2UQmXbuSEMbHdJ3ofwa&_nc_ohc=vNuVaiBvUTAAX_x7oD3&_nc_ht=scontent-bkk1-1.xx&oh=00_AfC8EkaysDZ4dWoI71pYWF3NNgcthR9VQrv-cAQxfjk7yA&oe=65D9917B" // Replace with the actual path to your image
                   alt="Avatar Image"
                   className="w-24 h-24 object-cover"
                 />
@@ -236,19 +250,13 @@ function Home() {
             <div className="text-center mt-4">
               <h6 className="text-xl font-semibold">Piya Pholuea</h6>
               <p className="text-gray-600">
-                computer science In the 4-year bachelors degree program, regular
-                semester Computer Science at Maha Sarakham Rajabhat University
-                Center Campus
-                {/* วิทยาการคอมพิวเตอร์ ในหลักสูตรปริญญาตรี 4 ปี ภาคปกติ
-              วิทยาการคอมพิวเตอร์ ณ วิทยาเขตศูนย์มหาวิทยาลัยราชภัฏมหาสารคาม */}
+                วิทยาการคอมพิวเตอร์ในหลักสูตรปริญญาตรี 4 ปี ภาคปกติ
+                วิทยาการคอมพิวเตอร์ณ มหาวิทยาลัยราชภัฏมหาสารคาม
               </p>
               <p className="text-gray-600">
-                Born on 13/10/2000 in Kalasin Province. and current address at
-                Kham Pa-o Kuddon, Huai Mek district/district Kalasin Province
-                46170 Telephone 0934177064
-                {/* เกิดเมื่อวันที่ 13/10/2543 ที่จังหวัดกาฬสินธุ์
-              และที่อยู่ปัจจุบันที่ คำปะโอ กุดโดน เขต/อำเภอ ห้วยเม็ก
-              จังหวัดกาฬสินธุ์ 46170 โทรศัพท์ 0934177064 */}
+                เกิดเมื่อวันที่ 13/10/2543 ที่จังหวัดกาฬสินธุ์
+                และที่อยู่ปัจจุบันที่ คำปะโอ กุดโดน เขต/อำเภอ ห้วยเม็ก
+                จังหวัดกาฬสินธุ์ 46170 โทรศัพท์ 0934177064
               </p>
             </div>
           </div>
@@ -262,7 +270,7 @@ function Home() {
             }}
           >
             <p style={{ textAlign: "center", color: "white" }}>
-              Copyright 2024
+              ลิขสิทธิ์ 2024
             </p>
           </div>
         </div>{" "}
@@ -272,23 +280,11 @@ function Home() {
   return (
     <>
       <div style={HomeStyle}>
-        <div style={textContainerStyle}>
-          <h1 style={headerStyle}>
-            WebApplication Management web application for moving items
-          </h1>
-          <p style={paragraphStyle}>
-            Welcome to our Web Application Management System for Moving Items!
-            Our platform is designed to provide seamless and efficient
-            management of the moving process. Whether you are a service provider
-            or a user in need of moving items, our application offers a
-            user-friendly interface and advanced features to enhance your
-            experience.
-          </p>
-        </div>
+        
         <div>
           <Link to="/CustomerMain">
             <button className="button border-blue-500" style={buttonStyle}>
-              GET STARTED
+              เริ่มต้นใช้งาน
             </button>
           </Link>
         </div>
