@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unknown-property */
 /* eslint-disable no-unused-vars */
 import { Link } from "react-router-dom";
 import Navbar from "../Navbar/Navbar";
@@ -61,17 +62,18 @@ function Home() {
     return (
       <>
         <Navbar />
-        <div style={textContainerStyle}>
-          <h1 style={headerStyle}>
-            ระบบจัดการเว็บแอพพลิเคชั่นสำหรับการย้ายของ
-          </h1>
-          <p style={paragraphStyle}>
-            ยินดีต้อนรับสู่ระบบจัดการเว็บแอพพลิเคชั่นสำหรับการย้ายของของเรา!
-            แพลตฟอร์มของเราถูกออกแบบมาเพื่อให้การจัดการกระบวนการย้ายของเป็นไปอย่างราบรื่นและมีประสิทธิภาพ
-            ไม่ว่าคุณจะเป็นผู้ให้บริการหรือผู้ใช้ที่ต้องการย้ายของ
-            แอปพลิเคชั่นของเรามีอินเตอร์เฟซที่ใช้งานง่ายและคุณสมบัติขั้นสูงเพื่อเสริมประสบการณ์ของคุณ
-          </p>
-        </div>
+        <div style={textContainerStyle} >
+  <h1 style={headerStyle}>
+    ระบบจัดการเว็บแอพพลิเคชั่นสำหรับการย้ายของ
+  </h1>
+  <p style={paragraphStyle}>
+    ยินดีต้อนรับสู่ระบบจัดการเว็บแอพพลิเคชั่นสำหรับการย้ายของของเรา!
+    แพลตฟอร์มของเราถูกออกแบบมาเพื่อให้การจัดการกระบวนการย้ายของเป็นไปอย่างราบรื่นและมีประสิทธิภาพ
+    ไม่ว่าคุณจะเป็นผู้ให้บริการหรือผู้ใช้ที่ต้องการย้ายของ
+    แอปพลิเคชั่นของเรามีอินเตอร์เฟซที่ใช้งานง่ายและคุณสมบัติขั้นสูงเพื่อเสริมประสบการณ์ของคุณ
+  </p>
+</div>
+
         <hr />
         <div style={{ color: "black" }}>
           <h1
@@ -283,7 +285,7 @@ function Home() {
         
         <div>
           <Link to="/CustomerMain">
-            <button className="button border-blue-500" style={buttonStyle}>
+            <button class="text-container" className="button border-blue-500" style={buttonStyle}>
               เริ่มต้นใช้งาน
             </button>
           </Link>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 import NavbarSV from './NavbarSV';
 
@@ -52,7 +52,7 @@ function BookingSV() {
         <>
             <NavbarSV />
             <div className="container mx-auto px-4 py-8 text-black">
-                <h1 className="text-2xl font-bold mb-4">ประวัติการจอง</h1>
+                <h1 className="text-2xl font-bold mb-4">ประวัติการขนส่ง</h1>
                 <button
                     onClick={handleDeleteLatestOrder}
                     className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded mb-4"

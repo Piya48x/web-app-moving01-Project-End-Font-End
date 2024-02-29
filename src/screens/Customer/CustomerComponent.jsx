@@ -31,10 +31,16 @@ function CustomerComponent() {
   const [directionsRenderer, setDirectionsRenderer] = useState(null);
   const [currentUserInfo, setCurrentUserInfo] = useState(null);
   const [showAlert, setShowAlert] = useState(false);
-  const [orders, setOrders] = useState([]);
+  const [clickCount, setClickCount] = useState(0);
 
   const navigate = useNavigate();
 
+  const costPerKm = {
+    "จักรยานยนต์": 10,
+    "รถ 3 ล้อ": 15,
+    "รถกระบะ": 25,
+    "รถบรรทุก 6 ล้อ": 30
+  };
   useEffect(() => {
     const handleOrderCancelled = () => {
       setShowAlert(true);
@@ -155,6 +161,7 @@ function CustomerComponent() {
         center: { lat: currentPosition.lat, lng: currentPosition.lng },
         zoom: 15,
       });
+      
     
       const pickupAutocomplete = new window.google.maps.places.Autocomplete(
         document.getElementById("pickup-input"),
@@ -267,6 +274,38 @@ function CustomerComponent() {
     }
   }, [pickupLocation, dropoffLocation]);
 
+  useEffect(() => {
+    if (pickupLocation && dropoffLocation) {
+      const directionsService = new window.google.maps.DirectionsService();
+      const renderer = new window.google.maps.DirectionsRenderer({
+        suppressMarkers: true,
+        preserveViewport: true,
+        polylineOptions: {
+          strokeColor: "blue",
+          strokeOpacity: 0.7,
+          strokeWeight: 5,
+        },
+      });
+
+      directionsService.route(
+        {
+          origin: pickupLocation,
+          destination: dropoffLocation,
+          travelMode: window.google.maps.TravelMode.DRIVING,
+        },
+        (result, status) => {
+          if (status === window.google.maps.DirectionsStatus.OK) {
+            renderer.setDirections(result);
+            setDirectionsRenderer(renderer);
+          } else {
+            console.error("Error calculating route:", status);
+            alert("Error calculating route. Please try again later.");
+          }
+        }
+      );
+    }
+  }, [pickupLocation, dropoffLocation]);
+
   const clearPickupLocation = () => {
     setPickupLocation(null);
     setPickupLocationInput("");
@@ -295,6 +334,28 @@ function CustomerComponent() {
   };
 
   const handleSubmit = async () => {
+    // Calculate cost based on selected vehicle type
+    let costPerKm = 0;
+    switch (selectedVehicle) {
+      case "จักรยานยนต์":
+        costPerKm = 0;
+        break;
+      case "รถ 3 ล้อ":
+        costPerKm = 10;
+        break;
+      case "รถกระบะ":
+        costPerKm = 15;
+        break;
+      case "รถบรรทุก 6 ล้อ":
+        costPerKm = 20;
+        break;
+      default:
+        costPerKm = 0;
+    }
+  
+    // Calculate total cost
+    const totalCost = totalDistance * costPerKm;
+  
     const orderData = {
       vehicle: selectedVehicle,
       bookingStatus:
@@ -309,7 +370,7 @@ function CustomerComponent() {
       totalDistance,
       totalCost,
     };
-
+  
     try {
       const response = await axios.post(
         "http://localhost:3000/api/booking",
@@ -318,9 +379,9 @@ function CustomerComponent() {
       if (response.status === 200) {
         console.log("Order placed successfully");
         alert("โปรดรอสักครู่กำลังค้นหาคนขับ...");
-
+  
         socket.emit("orderReceived", orderData);
-
+  
         setSelectedVehicle("");
         setSelectedBookingStatus("");
         setPickupLocationInput("");
@@ -340,6 +401,7 @@ function CustomerComponent() {
       alert("Error placing order. Please try again later.");
     }
   };
+  
 
   const handleViewOnGoogleMaps = () => {
     if (pickupLocation && dropoffLocation) {
@@ -384,7 +446,7 @@ function CustomerComponent() {
                 value={pickupLocationInput}
                 onChange={(e) => setPickupLocationInput(e.target.value)}
               />
-               <label
+              <label
                 className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
                 htmlFor="dropoff-input"
               >
@@ -421,7 +483,8 @@ function CustomerComponent() {
                 ยืนยันการสั่งซื้อ
               </button> */}
               <button
-                className="mb-20 w-full mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                style={{ marginTop: "10px" }}
+                className="mb-20 w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
                 onClick={calculateRoute}
               >
                 คำนวณเส้นทาง
@@ -439,15 +502,16 @@ function CustomerComponent() {
               )}
               {pickupLocation && dropoffLocation && (
                 <button
-                  className="w-full mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                  style={{ marginTop: "-10px" }}
+                  className="w-full mt-4 bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
                   onClick={handleViewOnGoogleMaps}
                 >
                   ดูบน Google Maps
                 </button>
               )}
             </div>
-           
-            <div style={{ marginTop: "-50px" }}>
+
+            <div style={{ marginTop: "10px" }}>
               <label
                 className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
                 htmlFor="bookingStatus"
@@ -486,7 +550,7 @@ function CustomerComponent() {
                     "จองล่วงหน้า"
                   )}
                 </div>
-                
+
                 {selectedBookingStatus === "Scheduled" && (
                   <input
                     type="datetime-local"
@@ -534,55 +598,54 @@ function CustomerComponent() {
               </select>
             </div>
           </div>
-          
+
           <div
             className="w-full md:w-3/4"
             id="map"
             style={{ height: "800px" }}
           ></div>
+
           <FollowDriverComponent className="absolute top-0 left-0 z-50 w-full border-red-500 rounded-full" />
           {showOrderConfirmation && (
-            <div className="fixed bottom-0 left-0 bg-white p-4 w-full">
-              <p>ยานพาหนะ: {selectedVehicle}</p>
-              <p>
-                สถานะการจอง:{" "}
-                {selectedBookingStatus === "Scheduled"
-                  ? moment(selectedDateTime)
-                      .locale("th")
-                      .format("วันที่ DD-MM-YYYY เวลา HH:mm")
-                  : selectedBookingStatus}
-              </p>
-              {pickupLocation && (
-                <p>
-                  สถานที่รับสินค้า:{" "}
-                  {pickupLocation.name}
-                </p>
-              )}
-              {dropoffLocation && (
-                <p>
-                  สถานที่ส่งสินค้า: {dropoffLocation.name}
-                </p>
-              )}
+  <div className="fixed bottom-0 left-0 bg-white p-4 w-full">
+    <button
+      className="absolute top-0 right-0 mr-4 mt-2 text-xl font-bold"
+      onClick={() => setShowOrderConfirmation(false)}
+    >
+      X
+    </button>
+    <p>ประเภทรถ: {selectedVehicle}</p>
+    <p>
+      สถานะการจอง:{" "}
+      {selectedBookingStatus === "Scheduled"
+        ? moment(selectedDateTime)
+            .locale("th")
+            .format("วันที่ DD-MM-YYYY เวลา HH:mm")
+        : selectedBookingStatus}
+    </p>
+    {pickupLocation && <p>สถานที่รับสินค้า: {pickupLocation.name}</p>}
+    {dropoffLocation && (
+      <p>สถานที่ส่งสินค้า: {dropoffLocation.name}</p>
+    )}
+    <p>ระยะทางทั้งหมด: {totalDistance.toFixed(2)} กิโลเมตร</p>
+    {/* Calculate total cost based on selected vehicle type */}
+    {selectedVehicle && (
+      <p>
+        ราคารวม:{" "}
+        {(totalDistance * costPerKm[selectedVehicle]).toFixed(2).toLocaleString("th-TH")} บาท
+      </p>
+    )}
+    <button
+      className="mt-4 bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
+      onClick={handleSubmit}
+    >
+      ยืนยันการสั่งซื้อ
+    </button>
+  </div>
+)}
 
-              {/* <p>
-                เวลาที่เลือก:{" "}
-                {moment(selectedDateTime)
-                  .locale("th")
-                  .format("วันที่ DD-MM-YYYY เวลา HH:mm")}
-              </p> */}
-              <p>ระยะทางทั้งหมด: {totalDistance.toFixed(2)} กิโลเมตร</p>
-              <p>ราคารวม: {totalCost.toFixed(2).toLocaleString('th-TH')} บาท</p>
 
-              <button
-                className="mt-4 bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
-                onClick={handleSubmit}
-              >
-                ยืนยันการสั่งซื้อ
-              </button>
-            </div>
-          )}
         </div>
-        
       </div>
     </>
   );

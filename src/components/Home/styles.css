@@ -19,4 +19,19 @@
     transform: scale(1.1);
     transition: all 0.5s; /* Remove this line if not needed */
   }
+
+  .text-container {
+    animation: bounceText 0.5s ease infinite alternate;
+    position: relative;
+  }
+
+  @keyframes bounceText {
+    from {
+      transform: translateY(0);
+    }
+    to {
+      transform: translateY(-10px);
+    }
+  }
+  
   
